@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+        <form method="POST" action="">
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Search for content here!</legend>
+                <div class="form-group">
+                    <label for="exampleFormControlTextarea1">Example search field</label>
+                    <textarea class="form-control" id="exampleFormControlTextarea1" placeholder="Enter first name" rows="1"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="exampleFormControlTextarea1">Example search field</label>
+                    <textarea class="form-control" id="exampleFormControlTextarea2" placeholder="Enter last name" rows="1"></textarea>
+                </div>
+            </fieldset>
+            <a href="{{ url_for('result') }}" class="btn btn-info" role="button">Search</a>
+        </form>
+    </div>
+{% endblock content %}
