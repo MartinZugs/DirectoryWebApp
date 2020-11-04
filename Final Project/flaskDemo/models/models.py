@@ -1,7 +1,7 @@
 #probably temporary since I will want to split this apart later for legibility
 from enum import unique
 from sqlalchemy.sql.schema import Column, ForeignKey
-from .flaskDemo import db
+from flaskDemo import db
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -48,7 +48,7 @@ class Student(Person):
 
     __mapper_args__    = {
         'polymorphic_identity': 'student',
-        'polymorphic_on'      : 'student_type'
+        # 'polymorphic_on'      : 'student_type'
     }
 
 # multivalued attribute
@@ -59,7 +59,7 @@ class PersonPhoneNumber(db.Model):
 
 
 #also just here so i can make sure I did my imports correctly 
-class Student(db.Model):
-    __tablename__='student'
-    studentID = db.Column(db.Integer, primary_key=True)
-    studentName = db.Column(db.String(25))
+# class Student(db.Model):
+#     __tablename__='student'
+#     studentID = db.Column(db.Integer, primary_key=True)
+#     studentName = db.Column(db.String(25))
