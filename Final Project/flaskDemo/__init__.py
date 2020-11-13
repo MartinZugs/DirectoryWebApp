@@ -11,4 +11,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app) #setup db
 
 from flaskDemo import routes
-# from models import models
+from .models.models import models
+
+models.db.create_all()
