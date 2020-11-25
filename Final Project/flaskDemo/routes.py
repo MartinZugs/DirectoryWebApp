@@ -1,38 +1,14 @@
-from flask import Flask, render_template, url_for, flash, redirect
+from flask import render_template, url_for, flash, redirect
+from flaskDemo import app, db
 from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm
+from .models.models import Student
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
-
-posts = [
-    {
-        'author': 'Channah Naiman',
-        'title': 'Blog Post 1',
-        'content': 'First post content',
-        'date_posted': 'April 20, 2018'
-    },
-    {
-        'author': 'Peter Dordal',
-        'title': 'Blog Post 2',
-        'content': 'Second post content',
-        'date_posted': 'April 21, 2018'
-    }
-]
-
-favSnacks = list()
-favSnack = dict()
-favSnack['snack']="Nestle's Crunch"
-favSnack['calories'] = 101
-favSnacks.append(favSnack)
-favSnack=dict()
-favSnack['snack']="KitKat"
-favSnack['calories'] = 202
-favSnacks.append(favSnack)
+#moved the code from flaskdemo.py here since this will be the routes
 
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', title='Martin Zugschwert', favSnack=favSnacks)
+    return render_template('home.html', title='Martin Zugschwert')
 
 
 @app.route("/about")
@@ -92,5 +68,3 @@ def error():
     
     return render_template('error.html', title='Error')
 
-if __name__ == '__main__':
-    app.run(debug=True)
