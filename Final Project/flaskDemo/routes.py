@@ -1,14 +1,19 @@
+import os
+import secrets
 from flask import render_template, url_for, flash, redirect
 from flaskDemo import app, db
+from flaskDemo.models import Person
 from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm
-from .models.models import Student
+from datetime import datetime
+
 
 #moved the code from flaskdemo.py here since this will be the routes
 
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', title='Martin Zugschwert')
+    results = Person.query.all()
+    return render_template('home.html', title='Martin Zugschwert',allpersons=results)
 
 
 @app.route("/about")
@@ -39,7 +44,6 @@ def login():
 
 @app.route("/search", methods=['GET', 'POST'])
 def search():
-
     return render_template('search.html', title='Search')
 
 
