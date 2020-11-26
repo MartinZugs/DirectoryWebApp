@@ -3,7 +3,7 @@ import secrets
 from flask import render_template, url_for, flash, redirect
 from flaskDemo import app, db
 from flaskDemo.models import Person
-from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm
+from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm
 from datetime import datetime
 
 
@@ -13,7 +13,7 @@ from datetime import datetime
 @app.route("/home")
 def home():
     results = Person.query.all()
-    return render_template('home.html', title='Martin Zugschwert',allpersons=results)
+    return render_template('home.html', title='Home',allpersons=results)
 
 
 @app.route("/about")
@@ -46,6 +46,11 @@ def login():
 def search():
     return render_template('search.html', title='Search')
 
+@app.route("/contact/<PersonID>")
+#@login_required
+def contact(PersonID):
+    contact = Person.query.get_or_404(PersonID)
+    return render_template('contact.html', title=str(contact.FName)+"_"+str(contact.LName), contact=contact, now=datetime.utcnow())
 
 @app.route("/result", methods=['GET', 'POST'])
 def result():
@@ -71,4 +76,26 @@ def detail():
 def error():
     
     return render_template('error.html', title='Error')
+    
+@app.route("/contact/new", methods=['GET', 'POST'])
+#@login_required
+def new_contact():
+    form = ContactForm()
+    if form.validate_on_submit():
+        contact = Person(PersonID=form.PersonID.data, FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType=form.UserType.data)
+        db.session.add(contact)
+        db.session.commit()
+        flash('You have added a new contact!', 'success')
+        return redirect(url_for('home'))
+    return render_template('createcontact.html', title='New Contact',
+                           form=form, legend='New Contact')
+                           
 
+@app.route("/contact/<PersonID>/delete",methods=['POST'])
+#@login_required
+def deletecontact(PersonID):
+    delcontact = Person.query.get_or_404(PersonID)
+    db.session.delete(delcontact)
+    db.session.commit()
+    flash('The contact has been removed!', 'success')
+    return redirect(url_for('home'))

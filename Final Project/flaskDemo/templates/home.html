@@ -4,15 +4,12 @@
         <article class="media content-section">
           <div class="media-body">
             <div class="article-metadata">
-              <a class="mr-2" href="#">{{ row['FName'] }} {{ row['LName'] }}</a>		 	  
+              <a class="mr-2" href="{{ url_for('contact', PersonID=row.PersonID) }}"> {{ row['FName'] }} {{ row['LName'] }}</a>		 	  
             </div>
 			<div class="contactinfo">
 				<small class="text-muted"> <b>Email:</b> {{ row['Email'] }} <br> <b>Phone:</b> {{row['PhoneNum']}} <br> <b>Status:</b> {{ row['UserType'] }} </small>	
 			</div>
-			
-			<!-- <h2><a class="article-title" href="{{ url_for('home', lname=row.lname, email=row.email) }}">{{ row.fname }} {{ row.lname }} {{ row.email }}</a></h2>-->
-            <h2><a class="article-title" href="#">{{ row.Fname }} {{ row.Lname }} </a></h2>
-           
+            <h2><a class="article-title" href="#">{{ row.Fname }} {{ row.Lname }} </a></h2>       
           </div>
         </article>
      {% endfor %}
