@@ -71,6 +71,7 @@
                     {{ form.UserType(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
+			{% block Manager %}{% endblock Manager %}
         </fieldset>
         <div class="form-group">
             {{ form.submit(class="btn btn-outline-info") }}

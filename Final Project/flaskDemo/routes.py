@@ -1,6 +1,6 @@
 import os
 import secrets
-from flask import render_template, url_for, flash, redirect
+from flask import render_template, url_for, flash, redirect, request
 from flaskDemo import app, db
 from flaskDemo.models import Person
 from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm
@@ -82,7 +82,7 @@ def error():
 def new_contact():
     form = ContactForm()
     if form.validate_on_submit():
-        contact = Person(PersonID=form.PersonID.data, FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType=form.UserType.data)
+        contact = Person(PersonID=form.PersonID.data, FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType=form.UserType.data, Manager=form.Manager.data)
         db.session.add(contact)
         db.session.commit()
         flash('You have added a new contact!', 'success')
@@ -99,3 +99,30 @@ def deletecontact(PersonID):
     db.session.commit()
     flash('The contact has been removed!', 'success')
     return redirect(url_for('home'))
+    
+@app.route("/contact/<PersonID>/update", methods=['GET', 'POST'])
+#@login_required
+def updatecontact(PersonID):
+    contact = Person.query.get_or_404(PersonID)
+    currentContact =  Person.PersonID
+ 
+    form = ContactUpdateForm()
+    if form.validate_on_submit():
+        if currentContact != form.PersonID.data:
+            contact.PersonID = form.PersonID.data
+        contact.FName = form.FName.data
+        contact.LName = form.LName.data
+        contact.Email = form.Email.data
+        contact.PhoneNum = form.PhoneNum.data
+        contact.UserType = form.UserType.data
+        db.session.commit()
+        flash ('The contact has been updated!', 'success')
+        return redirect (url_for ('contact', PersonID=PersonID))
+    elif request.method == 'GET':
+        form.PersonID.data = contact.PersonID
+        form.FName.data = contact.FName
+        form.LName.data = contact.LName
+        form.Email.data = contact.Email
+        form.PhoneNum.data = contact.PhoneNum
+        form.UserType.data = contact.UserType
+    return render_template ('updatecontact.html', title='Update Contact', form=form, legend='Update Contact')
