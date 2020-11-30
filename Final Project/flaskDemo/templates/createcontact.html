@@ -1,0 +1,32 @@
+{% extends "updatecontact.html" %}
+
+			{% block PersonID %}
+            <div class="form-group">
+                {{ form.PersonID.label(class="form-control-label") }}
+                {% if form.PersonID.errors %}
+                    {{ form.PersonID(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.PersonID.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.PersonID(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			{% endblock PersonID %}
+			{% block Manager %}
+			<div class="form-group">
+                {{ form.Manager.label(class="form-control-label") }}
+                {% if form.Manager.errors %}
+                    {{ form.Manager(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.Manger.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.Manager(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			{% endblock Manager %}

@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">{{ legend }}</legend>
+			{% block PersonID %} {% endblock PersonID %}
+            <div class="form-group">
+                {{ form.FName.label(class="form-control-label") }}
+                {% if form.FName.errors %}
+                    {{ form.FName(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.FName.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.FName(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			<div class="form-group">
+                {{ form.LName.label(class="form-control-label") }}
+                {% if form.LName.errors %}
+                    {{ form.LName(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.LName.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.LName(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			<div class="form-group">
+                {{ form.Email.label(class="form-control-label") }}
+                {% if form.Email.errors %}
+                    {{ form.Email(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.Email.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.Email(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			<div class="form-group">
+                {{ form.PhoneNum.label(class="form-control-label") }}
+                {% if form.PhoneNum.errors %}
+                    {{ form.PhoneNum(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.PhoneNum.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.PhoneNum(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			<div class="form-group">
+                {{ form.UserType.label(class="form-control-label") }}
+                {% if form.UserType.errors %}
+                    {{ form.UserType(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.UserType.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.UserType(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			{% block Manager %}{% endblock Manager %}
+        </fieldset>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}

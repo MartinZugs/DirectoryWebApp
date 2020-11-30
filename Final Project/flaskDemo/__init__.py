@@ -11,6 +11,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://Team5:453Team5@45.55.59.121/Tea
 db = SQLAlchemy(app) #setup db
 
 from flaskDemo import routes
-from .models.models import models
+from flaskDemo import models
 
 models.db.create_all()
