@@ -27,9 +27,27 @@ db.Model.metadata.reflect(db.engine)
 
 class Person(db.Model):
     __table__ = db.Model.metadata.tables['Person']
-
+    def serialize(self):
+        return {
+            'PersonID':self.PersonID,
+            'FName':self.FName,
+            'LName': self.LName,
+            'Email': self.Email,
+            'UserType': self.UserType,
+            "PhoneNum": self.PhoneNum,
+            'Manager': self.Manager
+            }
+    
 class Employee(db.Model):
     __table__ = db.Model.metadata.tables['Employee']
+    def serialize(self):
+        
+        return {
+            'PersonID':self.PersonID,
+            'EmployeeID': self.EmployeeID,
+            'ManagerID':self.ManagerID,
+            'EmployeeType': self.EmployeeType
+        }
 
 class Retiree(db.Model):
     __table__ = db.Model.metadata.tables['Retiree']
