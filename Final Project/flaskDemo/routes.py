@@ -1,10 +1,13 @@
 import os
 import secrets
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect, request, jsonify
+from flask.globals import session
 from flaskDemo import app, db
-from flaskDemo.models import Person
+from flaskDemo.models import Person, Employee
 from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm
 from datetime import datetime
+import json
+
 
 
 #moved the code from flaskdemo.py here since this will be the routes
@@ -13,7 +16,9 @@ from datetime import datetime
 @app.route("/home")
 def home():
     results = Person.query.all()
+    
     return render_template('home.html', title='Home',allpersons=results)
+
 
 
 @app.route("/about")
@@ -59,8 +64,21 @@ def result():
 
 @app.route("/admin", methods=['GET', 'POST'])
 def admin():
-    
-    return render_template('admin.html', title='Admin')
+    # i think i need to send all of the content to the page because otherwise I will need to keep resending stuff
+    persons = Person.query.all()
+    return render_template('admin.html', title='Admin', people= persons)
+
+@app.route("/admin/manage", methods=['GET', 'POST'])
+def manage():
+    if request.method == 'GET':
+        model = request.args.get("model")
+        
+        data = getModel(model)
+        # results =  []
+        
+        
+        return jsonify(data)
+    return "test"
 
 @app.route("/settings", methods=['GET', 'POST'])
 def settings():
@@ -126,3 +144,27 @@ def updatecontact(PersonID):
         form.PhoneNum.data = contact.PhoneNum
         form.UserType.data = contact.UserType
     return render_template ('updatecontact.html', title='Update Contact', form=form, legend='Update Contact')
+
+def getModel(model):
+    if (model == "Employee"):
+        session = db.session
+        items = session.query(Person,Employee).filter(Person.PersonID == Employee.PersonID).all()
+        # employees = Employee.query.join(Person, Employee.PersonID == Person.PersonID).all()
+        results = []
+        for item in items:
+            person = item.Person.serialize()
+            employee = item.Employee.serialize()
+            Merge(person,employee)
+            print(person)
+            results.append(person)
+        return results
+    elif (model == "All"):
+        persons = Person.query.all()
+        results = []
+        for person in persons:
+            results.append(person.serialize())
+        return results
+    return None
+
+def Merge(dict1, dict2):
+    return (dict1.update(dict2))
