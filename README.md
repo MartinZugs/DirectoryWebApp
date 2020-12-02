@@ -3,6 +3,10 @@ Our final web app directory for Comp 453
 
 Change Log: 
 
+11/24 (MZ) 
+ - deployed the db and added all of the dummy data
+ - added the code to connect to the DB
+
 11/26(EK)
  - Couple of changes with models file to reflect database name changes
  - Played around with basic query for homepage and formatting for user "tiles"
