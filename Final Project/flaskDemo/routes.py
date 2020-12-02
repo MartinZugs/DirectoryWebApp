@@ -164,6 +164,58 @@ def getModel(model):
         for person in persons:
             results.append(person.serialize())
         return results
+    elif (model == "Student"):
+        results = []
+        return results
+    elif (model == "Campus"):
+        results = []
+        return results
+    elif (model == "Building"):
+        results = []
+        return results
+    elif (model == "Department"):
+        results = []
+        return results
+    elif (model == "Office"):
+        results = []
+        return results
+    elif (model == "Faculty"):
+        results = []
+        return results
+    elif (model == "Course"):
+        results = []
+        return results
+    elif (model == "Prereqs"):
+        results = []
+        return results
+    elif (model == "Undergrad"):
+        results = []
+        return results
+    elif (model == "Enrolled_In"):
+        results = []
+        return results
+    elif (model == "Graduate"):
+        results = []
+        return results
+    elif (model == "Registered_For"):
+        results = []
+        return results
+    elif (model == "Teaching_Assistant"):
+        results = []
+        return results
+    elif (model == "Research_Assistant"):
+        results = []
+        return results
+    elif (model == "Alumni"):
+        results = []
+        return results
+    elif (model == "Retiree"):
+        results = []
+        return results
+    elif (model == "Staff"):
+        results = []
+        return results
+    
     return None
 
 def Merge(dict1, dict2):
