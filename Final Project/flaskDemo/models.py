@@ -51,52 +51,156 @@ class Employee(db.Model):
 
 class Retiree(db.Model):
     __table__ = db.Model.metadata.tables['Retiree']
-
+    def serialize(self):
+        
+        return {
+            'EmployeeID': self.EmployeeID,
+            'RetirementDate':self.RetirementDate,
+            'RetirementPackage': self.RetirementPackage
+        }
 class Staff(db.Model):
     __table__ = db.Model.metadata.tables['Staff']
-
+    def serialize(self):
+        
+        return {
+            'EmployeeID': self.EmployeeID,
+            'OfficeID':self.OfficeID,
+            'DepartmentID': self.DepartmentID
+        }
 class Faculty(db.Model):
     __table__ = db.Model.metadata.tables['Faculty']
-
+    def serialize(self):
+        
+        return {
+            'EmployeeID': self.EmployeeID,
+            'OfficeID':self.OfficeID,
+            'DepartmentID': self.DepartmentID
+        }
 class Student(db.Model):
     __table__ = db.Model.metadata.tables['Student']
-
+    def serialize(self):
+        
+        return {
+            'PersonID': self.PersonID,
+            'EnrollmentStatus': self.EnrollmentStatus,
+            'CreditHoursTotal': self.CreditHoursTotal,
+            'StudentType': self.StudentType
+        }
 class Undergrad(Student):
     __table__ = db.Model.metadata.tables['Undergrad']
-
+    def serialize(self):
+        
+        return {
+            'StudentID': self.StudentID
+        }
 class Graduate(Student):
     __table__ = db.Model.metadata.tables['Graduate']
-
+    def serialize(self):
+        
+        return {
+            'StudentID': self.StudentID,
+            'UGCompDate': self.UGCompDate,
+            'GraduateType': self.GraduateType
+        }
 class Teaching_Assistant(Graduate):
     __table__ = db.Model.metadata.tables['Teaching_Assistant']
-
+    def serialize(self):
+        
+        return {
+            'StudentID': self.StudentID,
+            'CourseID': self.CourseID
+        }
 class Research_Assistant(Graduate):
     __table__ = db.Model.metadata.tables['Research_Assistant']
-
+    def serialize(self):
+        
+        return {
+            'StudentID': self.StudentID,
+            'ResearchFocus': self.ResearchFocus
+        }
 class Alumni(Student):
     __table__ = db.Model.metadata.tables['Alumni']
-
+    def serialize(self):
+        
+        return {
+            'StudentID': self.StudentID,
+            'GraduationDate': self.GraduationDate,
+            'FinalSemester': self.FinalSemester
+        }
 class Department(db.Model):
     __table__ = db.Model.metadata.tables['Department']
-
+    def serialize(self):
+        
+        return {
+            'DepartmentID': self.DepartmentID,
+            'BuildingID': self.BuildingID,
+            'DepartmentName': self.DepartmentName
+        }
 class Office(db.Model):
     __table__ = db.Model.metadata.tables['Office']
-
+    def serialize(self):
+        
+        return {
+            'OfficeID': self.OfficeID,
+            'BuildingID': self.BuildingID
+        }
 class Building(db.Model):
     __table__ = db.Model.metadata.tables['Building']
-
+    def serialize(self):
+        
+        return {
+            'CampusID': self.CampusID,
+            'BuildingName': self.BuildingName,
+            'BuildingID': self.BuildingID,
+            'BuildingAddress': self.BuildingAddress
+        }
 class Campus(db.Model):
     __table__ = db.Model.metadata.tables['Campus']
-
+    def serialize(self):
+        
+        return {
+            'CampusID': self.CampusID,
+            'CampusName': self.CampusName
+        }
 class Course(db.Model):
     __table__ = db.Model.metadata.tables['Course']
+    def serialize(self):
+        
+        return {
+            'CourseID': self.CourseID,
+            'ProfID': self.ProfID,
+            'CourseDescription': self.CourseDescription,
+            'NoOfSeats': self.NoOfSeats,
+            'Credits': self.Credits
 
+
+        }
 class Enrolled_In(db.Model):
     __table__ = db.Model.metadata.tables['Enrolled_In']
+    def serialize(self):
+        
+        return {
+            'StudentID': self.StudentID,
+            'CourseID': self.CourseID
 
+        }
 class Prereqs(db.Model):
     __table__ = db.Model.metadata.tables['Prereqs']
+    def serialize(self):
+        
+        return {
+            'MainCourseID': self.MainCourseID,
+            'PrereqID': self.PrereqID
 
+        }
+class Registered_For(db.Model):
+    __table__ = db.Model.metadata.tables['Registered_For']
+    def serialize(self):
+        
+        return {
+            'StudentID': self.StudentID,
+            'CourseID': self.CourseID
+        }
 #also just here so i can make sure I did my imports correctly 
 # class Student(db.Model):
 #     __tablename__='student'
