@@ -3,19 +3,36 @@ function changeManagmentContent(model) {
 console.log(model);
 
 $("#manageTitle").text(model);
-
-$.ajax({
-    method: 'GET',
-    url: "/admin/manage",
-    data: {'model':model},
-    success: function(response) {
-        console.log(response);
-        fillTable(response);
+var table = document.getElementById('table');
+var rowCount = table.rows.length;
+if (rowCount > 1) {
+    for (var i = 1; i < rowCount; i++) {
+        table.deleteRow(1);
+        if (i == rowCount-1) {
+            getModel(model);
+        }
     }
-})
+} else {
+    getModel(model);
+}
+
+
 
 
 }
+
+function getModel(model){
+    $.ajax({
+        method: 'GET',
+        url: "/admin/manage",
+        data: {'model':model},
+        success: function(response) {
+            console.log(response);
+            fillTable(response);
+        }
+    })
+}
+
 
 function fillTable(array) {
     var html = '';
