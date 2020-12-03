@@ -15,3 +15,10 @@ Change Log:
  
  11/29(EK)
   -Added initial Update functionality and fixed validation of PersonID on new contact creation
+
+12/3(MZ)
+Here is what has been added: 
+- full login and register functionality
+- logic so that those who are non-admins can only edit and delete their own entries and can not add anyone
+- logic so that admins can edit, delete, and add as thye please
+- changing of the person table to add an auto incrementing primary key
