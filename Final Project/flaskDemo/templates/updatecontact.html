@@ -5,7 +5,6 @@
         {{ form.hidden_tag() }}
         <fieldset class="form-group">
             <legend class="border-bottom mb-4">{{ legend }}</legend>
-			{% block PersonID %} {% endblock PersonID %}
             <div class="form-group">
                 {{ form.FName.label(class="form-control-label") }}
                 {% if form.FName.errors %}

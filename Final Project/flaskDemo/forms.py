@@ -39,7 +39,6 @@ class ContactUpdateForm(FlaskForm):
     
 class ContactForm(ContactUpdateForm):
 
-    PersonID=IntegerField('User ID Number:', validators=[DataRequired()])
     Manager= SelectField(' Is a Manager:', choices=[('1','Yes'),('0','No')])
     submit = SubmitField('Add this contact') 
     
