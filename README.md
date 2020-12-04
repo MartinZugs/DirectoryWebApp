@@ -22,3 +22,9 @@ Here is what has been added:
 - logic so that those who are non-admins can only edit and delete their own entries and can not add anyone
 - logic so that admins can edit, delete, and add as thye please
 - changing of the person table to add an auto incrementing primary key
+
+12/4 (EK)
+- Added Logout function and button to access the Add Contact function
+- Added authentication requirement to access logout/add contact
+- Split Add Contact form into seperate forms for Employees and Students
+- Modified some foreign key constraints on Employee and Student tables to reflect intention of those values. 
