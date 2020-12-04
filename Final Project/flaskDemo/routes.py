@@ -2,8 +2,8 @@ import os
 import secrets
 from flask import render_template, url_for, flash, redirect, request
 from flaskDemo import app, db, bcrypt
-from flaskDemo.models import Person, User
-from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm
+from flaskDemo.models import Person, User, Student, Employee
+from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm, StudentForm
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 
@@ -52,7 +52,11 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
-
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+    
 @app.route("/search", methods=['GET', 'POST'])
 def search():
     return render_template('search.html', title='Search')
@@ -107,14 +111,83 @@ def new_contact():
 
     form = ContactForm()
     if form.validate_on_submit():
-        contact = Person(FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType=form.UserType.data, Manager=form.Manager.data)
+        contact = Person(FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType='Employee', Manager=form.Manager.data)
         db.session.add(contact)
         db.session.commit()
         flash('You have added a new contact!', 'success')
         return redirect(url_for('home'))
     return render_template('createcontact.html', title='New Contact',
                            form=form, legend='New Contact')
+
+@app.route("/contact/newstudent", methods=['GET', 'POST'])
+@login_required                           
+def new_student():
+
+    # only allow those who are marked as managers, our version of admins, to add new people
+    current_contact = Person.query.filter_by(Email=current_user._get_current_object().email).first()
+
+    if current_contact == None:
+
+        flash('You are not allowed to add a new entry', 'danger')
+        return redirect(url_for('home'))
+
+    elif current_contact.Manager == 0:
+        
+        flash('You are not allowed to add a new entry', 'danger')
+        return redirect(url_for('home'))
+
+    form = StudentForm()
+    if form.validate_on_submit():
+        contact = Person(FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType="Student", Manager='0')
+        db.session.add(contact)
+        db.session.commit()
+        
+        current_add = Person.query.filter_by(Email=form.Email.data).first()
+        student = Student(PersonID=current_add.PersonID, EnrollmentStatus=form.EnrollmentStatus.data, CreditHoursTotal='0', StudentType=form.StudentType.data)
+        db.session.add(student)
+        db.session.commit()
+        flash('You have added a new contact!', 'success')
+        return redirect(url_for('home'))
+    return render_template('createstudent.html', title='New Student',
+                           form=form, legend='New Student')
                            
+@app.route("/contact/newemployee", methods=['GET', 'POST'])
+@login_required                               
+def new_employee():
+
+    # only allow those who are marked as managers, our version of admins, to add new people
+    current_contact = Person.query.filter_by(Email=current_user._get_current_object().email).first()
+
+    if current_contact == None:
+
+        flash('You are not allowed to add a new entry', 'danger')
+        return redirect(url_for('home'))
+
+    elif current_contact.Manager == 0:
+        
+        flash('You are not allowed to add a new entry', 'danger')
+        return redirect(url_for('home'))
+
+    form = ContactForm()
+    if form.validate_on_submit():
+        contact = Person(FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType="Employee", Manager=form.Manager.data)
+        db.session.add(contact)
+        db.session.commit()
+        
+        current_emp = Person.query.filter_by(Email=form.Email.data).first()        
+        employee = Employee(ManagerID="10", PersonID=current_emp.PersonID, EmployeeType=form.EmployeeType.data) #set managerID to 10 for testing 
+        db.session.add(employee)
+        db.session.commit()
+        flash('You have added a new contact!', 'success')
+        return redirect(url_for('home'))
+    return render_template('createcontact.html', title='New Employee',
+                           form=form, legend='New Employee')
+
+                           
+@app.route("/contact/select", methods=['GET', 'POST'])
+@login_required                          
+def selectaddcontact(): 
+    return render_template('selectaddcontact.html', title='Add Select', legend='Add Select') 
 
 @app.route("/contact/<PersonID>/delete",methods=['POST'])
 @login_required
@@ -186,7 +259,7 @@ def updatecontact(PersonID):
         contact.LName = form.LName.data
         contact.Email = form.Email.data
         contact.PhoneNum = form.PhoneNum.data
-        contact.UserType = form.UserType.data
+        contact.UserType = contact.UserType
         db.session.commit()
         flash ('The contact has been updated!', 'success')
         return redirect (url_for ('contact', PersonID=PersonID))

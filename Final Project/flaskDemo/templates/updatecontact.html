@@ -58,19 +58,13 @@
                 {% endif %}
             </div>
 			<div class="form-group">
-                {{ form.UserType.label(class="form-control-label") }}
-                {% if form.UserType.errors %}
-                    {{ form.UserType(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.UserType.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.UserType(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
+			{% block UserType %}{% endblock UserType %}
+			{% block EmployeeType %}{% endblock EmployeeType %}
 			{% block Manager %}{% endblock Manager %}
+			{% block ManagerID %}{% endblock ManagerID %}
+			{% block StudentID %}{% endblock StudentID %}
+			{% block StudentType %}{% endblock StudentType %}
+			{% block EnrollmentStatus %}{% endblock EnrollmentStatus %}
         </fieldset>
         <div class="form-group">
             {{ form.submit(class="btn btn-outline-info") }}
