@@ -1,0 +1,34 @@
+{% extends "updatecontact.html" %}
+
+			{% block StudentID %}{% endblock StudentID %}
+			{% block StudentType %}
+			<div class="form-group">
+                {{ form.StudentType.label(class="form-control-label") }}
+                {% if form.StudentType.errors %}
+                    {{ form.StudentType(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.StudentType.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.StudentType(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			{% endblock StudentType %}
+			{% block EnrollmentStatus %}
+			<div class="form-group">
+                {{ form.EnrollmentStatus.label(class="form-control-label") }}
+                {% if form.EnrollmentStatus.errors %}
+                    {{ form.EnrollmentStatus(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.EnrollmentStatus.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.EnrollmentStatus(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			{% endblock EnrollmentStatus %}
+			
