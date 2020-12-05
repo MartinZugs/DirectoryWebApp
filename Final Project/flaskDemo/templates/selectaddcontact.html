@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+
+  <article class="media content-section">
+   <div class="media-body">
+      <div class="article-metadata">
+     
+        <small class="text-muted">Select the type of user you are trying to add: </small>
+
+          <div>
+            <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('new_student') }}">Student </a>
+            <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('new_employee') }}">Employee</a>
+          </div>
+ 
+      </div>
+
+    </div>
+  </article>
+
+  
+{% endblock content %}

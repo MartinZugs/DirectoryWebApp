@@ -1,29 +1,25 @@
 from datetime import datetime
-from flaskDemo import db #add login_manager for login stuff below
-#from enum import unique
-#from sqlalchemy.sql.schema import Column, ForeignKey
-#from flask_sqlalchemy import SQLAlchemy
-#from flask_login import UserMixin
-
-
+from flaskDemo import db, login_manager
+from sqlalchemy import orm
+from flask_login import UserMixin
 
 db.Model.metadata.reflect(db.engine)
 
 # Created a seperate User table for login users that could be the system owner etc, not sure if we want to user that or tie to the fake users.
 
-#@login_manager.user_loader
-#def load_user(user_id):
-#    return Person.query.get(int(user_id))
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
     
-#class User(db.Model, UserMixin):
-#    __table_args__ = {'extend_existing': True}
-#    user_id = db.Column(db.Integer, primary_key=True)
-#    username = db.Column(db.String(20), unique=True, nullable=False)
-#    email = db.Column(db.String(120), unique=True, nullable=False)
-#    password = db.Column(db.String(60), nullable=False)
+class User(db.Model, UserMixin):
+    __table_args__ = {'extend_existing': True}
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
 
-#    def __repr__(self):
-#        return f"User('{self.username}', '{self.email}')"
+    def __repr__(self):
+        return f"User('{self.username}', '{self.email}')"
 
 class Person(db.Model):
     __table__ = db.Model.metadata.tables['Person']

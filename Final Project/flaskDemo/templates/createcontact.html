@@ -15,13 +15,28 @@
                 {% endif %}
             </div>
 			{% endblock PersonID %}
+			{% block EmployeeType %}
+			<div class="form-group">
+                {{ form.EmployeeType.label(class="form-control-label") }}
+                {% if form.EmployeeType.errors %}
+                    {{ form.EmployeeType(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.EmployeeType.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.EmployeeType(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			{% endblock EmployeeType %}
 			{% block Manager %}
 			<div class="form-group">
                 {{ form.Manager.label(class="form-control-label") }}
                 {% if form.Manager.errors %}
                     {{ form.Manager(class="form-control form-control-lg is-invalid") }}
                     <div class="invalid-feedback">
-                        {% for error in form.Manger.errors %}
+                        {% for error in form.Manager.errors %}
                             <span>{{ error }}</span>
                         {% endfor %}
                     </div>
@@ -30,3 +45,18 @@
                 {% endif %}
             </div>
 			{% endblock Manager %}
+			{% block ManagerID %}
+			<div class="form-group">
+                {{ form.ManagerID.label(class="form-control-label") }}
+                {% if form.ManagerID.errors %}
+                    {{ form.ManagerID(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.ManagerID.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.ManagerID(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+			{% endblock ManagerID %}
