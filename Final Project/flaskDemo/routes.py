@@ -1,11 +1,15 @@
 import os
 import secrets
-from flask import render_template, url_for, flash, redirect, request
+
+from flask import render_template, url_for, flash, redirect, request, jsonify
+from flask.globals import session
 from flaskDemo import app, db, bcrypt
 from flaskDemo.models import Person, User, Student, Employee, Faculty, Department, Office, Building, Campus, Course, Enrolled_In
 from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm, StudentForm
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
+import json
+
 
 
 #moved the code from flaskdemo.py here since this will be the routes
@@ -14,7 +18,9 @@ from datetime import datetime
 @app.route("/home")
 def home():
     results = Person.query.all()
+    
     return render_template('home.html', title='Home',allpersons=results)
+
 
 
 @app.route("/about")
@@ -139,8 +145,21 @@ def result():
 
 @app.route("/admin", methods=['GET', 'POST'])
 def admin():
-    
-    return render_template('admin.html', title='Admin')
+    # i think i need to send all of the content to the page because otherwise I will need to keep resending stuff
+    persons = Person.query.all()
+    return render_template('admin.html', title='Admin', people= persons)
+
+@app.route("/admin/manage", methods=['GET', 'POST'])
+def manage():
+    if request.method == 'GET':
+        model = request.args.get("model")
+        
+        data = getModel(model)
+        # results =  []
+        
+        
+        return jsonify(data)
+    return "test"
 
 @app.route("/settings", methods=['GET', 'POST'])
 def settings():
@@ -336,3 +355,118 @@ def updatecontact(PersonID):
         form.PhoneNum.data = contact.PhoneNum
         form.UserType.data = contact.UserType
     return render_template ('updatecontact.html', title='Update Contact', form=form, legend='Update Contact')
+
+def getModel(model):
+    session = db.session
+
+    if (model == "Employee"):
+
+        items = session.query(Person,Employee).filter(Person.PersonID == Employee.PersonID).all()
+        # employees = Employee.query.join(Person, Employee.PersonID == Person.PersonID).all()
+        results = []
+        for item in items:
+            person = item.Person.serialize()
+            employee = item.Employee.serialize()
+            Merge(person,employee)
+            print(person)
+            results.append(person)
+        return results
+    elif (model == "All"):
+        persons = Person.query.all()
+        results = []
+        for person in persons:
+            results.append(person.serialize())
+        return results
+    elif (model == "Student"):
+        items = session.query(Student,Person).filter(Person.PersonID == Student.PersonID).all()
+        results = []
+        for item in items:
+            person = item.Person.serialize()
+            student = item.Student.serialize()
+            Merge(person,student)
+            print(person)
+            results.append(person)
+        return results
+    elif (model == "Campus"):
+        items = Campus.query.all()
+        results = []
+        for item in items:
+            campus = item.serialize()
+            results.append(campus)
+        return results
+    elif (model == "Building"):
+        items = session.query(Building, Campus).filter(Building.CampusID== Campus.CampusID).all()
+        results = []
+        for item in items:
+            campus = item.Campus.serialize()
+            building = item.Building.serialize()
+            Merge(campus, building)
+            results.append(campus)
+        return results
+    elif (model == "Department"):
+        results = []
+        items = session.query(Building, Department).filter(Department.BuildingID == Building.BuildingID).all()
+        for item in items:
+            department = item.Department.serialize()
+            building = item.Building.serialize()
+            Merge(building, department)
+            results.append(building)
+        return results
+    elif (model == "Office"):
+        results = []
+        items = session.query(Building, Office).filter(Office.BuildingID == Building.BuildingID).all()
+        for item in items:
+            office = item.Office.serialize()
+            building = item.Building.serialize()
+            Merge(building, office)
+            results.append(building)
+        return results
+    elif (model == "Faculty"):
+        results = []
+        items = session.query(Faculty, Employee, Person).filter(Employee.EmployeeID == Faculty.EmployeeID).filter(Employee.PersonID == Person.PersonID).all()
+        for item in items:
+            faculty = item.Faculty.serialize()
+            employee = item.Employee.serialize()
+            person   = item.Person.serialize()
+            Merge(faculty, employee)
+            Merge(faculty,person)
+            results.append(faculty)
+        return results
+    elif (model == "Course"):
+        results = []
+        return results
+    elif (model == "Prereqs"):
+        results = []
+        return results
+    elif (model == "Undergrad"):
+        results = []
+        return results
+    elif (model == "Enrolled_In"):
+        results = []
+        return results
+    elif (model == "Graduate"):
+        results = []
+        return results
+    elif (model == "Registered_For"):
+        results = []
+        return results
+    elif (model == "Teaching_Assistant"):
+        results = []
+        return results
+    elif (model == "Research_Assistant"):
+        results = []
+        return results
+    elif (model == "Alumni"):
+        results = []
+        return results
+    elif (model == "Retiree"):
+        results = []
+        return results
+    elif (model == "Staff"):
+        results = []
+        return results
+    
+    return None
+
+def Merge(dict1, dict2):
+    return (dict1.update(dict2))
