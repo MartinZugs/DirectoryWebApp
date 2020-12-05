@@ -5,7 +5,12 @@
    <div class="media-body">
       <div class="article-metadata">
         <a class="mr-2" href="#">{{ contact.FName }} {{ contact.LName }}</a>
+
         <small class="text-muted">{{now.strftime('%A %B, %d %Y %H:%M:%S')}}</small>
+
+        <div class="contactinfo">
+          <small class="text-muted"> <b> {{ contact.FName }} {{ contact.LName }} is a Student. </b> <br> <b>Phone:</b> {{ contact.PhoneNum }} <br> <b>Email:</b> {{ contact.Email }} <br> <b>Student Type:</b> {{ student.StudentType }} <br> <b>Enrollment Status:</b> {{ student.EnrollmentStatus }} <br> <b>Enrolled Course Name:</b> {{ course.CourseDescription }} <br> </small>	
+        </div>
 
           <div>
             <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('updatecontact', PersonID=contact.PersonID) }}">Update</a>

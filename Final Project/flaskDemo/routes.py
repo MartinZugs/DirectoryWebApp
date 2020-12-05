@@ -2,7 +2,7 @@ import os
 import secrets
 from flask import render_template, url_for, flash, redirect, request
 from flaskDemo import app, db, bcrypt
-from flaskDemo.models import Person, User, Student, Employee
+from flaskDemo.models import Person, User, Student, Employee, Faculty, Department, Office, Building, Campus, Course, Enrolled_In
 from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm, StudentForm
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
@@ -65,7 +65,64 @@ def search():
 @login_required
 def contact(PersonID):
     contact = Person.query.get_or_404(PersonID)
-    return render_template('contact.html', title=str(contact.FName)+"_"+str(contact.LName), contact=contact, now=datetime.utcnow())
+
+    if contact.UserType == 'Employee':
+
+        employee = Employee.query.filter_by(PersonID=contact.PersonID).first()
+        
+        try:
+            faculty = Faculty.query.filter_by(EmployeeID=employee.EmployeeID).first()
+        except:
+            faculty = None
+
+        try:
+            department = Department.query.filter_by(DepartmentID=faculty.DepartmentID).first()
+        except:
+            department = None
+        
+        try:
+            office = Office.query.filter_by(OfficeID=faculty.OfficeID).first()
+        
+        except:
+            office = None
+        
+        try:
+            building = Building.query.filter_by(BuildingID=office.BuildingID).first()
+        
+        except:
+            building = None
+
+        try:
+            campus = Campus.query.filter_by(CampusID=building.CampusID).first()
+
+        except:
+            campus = None
+        
+        try:
+            course = Course.query.filter_by(ProfID=faculty.EmployeeID).first()
+
+        except:
+            course = None
+
+        return render_template('contact_employee.html', title=str(contact.FName)+"_"+str(contact.LName), contact=contact, course=course, employee=employee, campus=campus, department=department, office=office, building=building, now=datetime.utcnow())
+
+    elif contact.UserType == 'Student':
+
+        student = Student.query.filter_by(PersonID=contact.PersonID).first()
+
+        try:
+            enrolled_in = Enrolled_In.query.filter_by(StudentID=student.StudentID).first()
+
+        except:
+            enrolled_in = None
+
+        try:
+            course = Course.query.filter_by(CourseID=enrolled_in.CourseID).first()
+
+        except:
+            course = None
+
+        return render_template('contact_student.html', title=str(contact.FName)+"_"+str(contact.LName), contact=contact, course=course, student=student, now=datetime.utcnow())
 
 @app.route("/result", methods=['GET', 'POST'])
 def result():

@@ -28,3 +28,8 @@ Here is what has been added:
 - Added authentication requirement to access logout/add contact
 - Split Add Contact form into seperate forms for Employees and Students
 - Modified some foreign key constraints on Employee and Student tables to reflect intention of those values. 
+
+12/5 (MZ)
+- Added in content on the page when you click on someone's name
+- Wrote up all of the connection code so that this data can be pulled together
+- Split the contact page into different ones for employee and student and modified the routes.py to work with with that

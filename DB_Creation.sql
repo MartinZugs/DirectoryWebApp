@@ -163,3 +163,22 @@ CREATE TABLE Staff (
     FOREIGN KEY (DepartmentID) REFERENCES Department(DepartmentID),
     CONSTRAINT staff_pk PRIMARY KEY (EmployeeID)
 );
+
+INSERT INTO `Person` (`PersonID`, `FName`, `LName`, `Email`, `UserType`, `PhoneNum`, `Manager`) VALUES ('1', 'Frank', 'Zab', 'fzab@gmail.com', 'Employee', '773-983-8902', b'1');
+INSERT INTO `Person` (`PersonID`, `FName`, `LName`, `Email`, `UserType`, `PhoneNum`, `Manager`) VALUES ('2', 'Sam', 'Reten', 'sret@gmail.com', 'Student', '364-693-9739', b'0');
+INSERT INTO `Student` (`StudentID`, `PersonID`, `EnrollmentStatus`, `CreditHoursTotal`, `StudentType`) VALUES ('1', '2', 'Full-time', '30', 'Undergrad');
+INSERT INTO `Undergrad` (`StudentID`) VALUES ('1');
+INSERT INTO `Employee` (`EmployeeID`, `ManagerID`, `PersonID`, `EmployeeType`) VALUES ('1', NULL, '1', 'Faculty');
+INSERT INTO `Campus` (`CampusID`, `CampusName`) VALUES ('1', 'Lakeshore');
+INSERT INTO `Building` (`BuildingID`, `CampusID`, `BuildingName`, `BuildingAddress`) VALUES ('1', '1', 'Cuneo Hall', '6430 N Kenmore Ave, Chicago, IL 60626');
+INSERT INTO `Office` (`OfficeID`, `BuildingID`) VALUES ('234', '1');
+INSERT INTO `Department` (`DepartmentID`, `BuildingID`, `DepartmentName`) VALUES ('1', '1', 'Computer Science');
+INSERT INTO `Faculty` (`EmployeeID`, `OfficeID`, `DepartmentID`) VALUES ('1', '234', '1');
+INSERT INTO `Course` (`CourseID`, `ProfID`, `CourseDescription`, `NoOfSeats`, `Credits`) VALUES ('1', '1', 'Database Programming', '20', '3');
+INSERT INTO `Enrolled_In` (`StudentID`, `CourseID`) VALUES ('1', '1');
+INSERT INTO `Course` (`CourseID`, `ProfID`, `CourseDescription`, `NoOfSeats`, `Credits`) VALUES ('2', '1', 'Algorithms', '25', '3');
+INSERT INTO `Person` (`PersonID`, `FName`, `LName`, `Email`, `UserType`, `PhoneNum`, `Manager`) VALUES ('3', 'Alice', 'Drew', 'adrew@gmail.com', 'Employee', '453-867-0922', b'0');
+INSERT INTO `Employee` (`EmployeeID`, `ManagerID`, `PersonID`, `EmployeeType`) VALUES ('2', '1', '3', 'Staff');
+INSERT INTO `Office` (`OfficeID`, `BuildingID`) VALUES ('142', '1');
+INSERT INTO `Staff` (`EmployeeID`, `OfficeID`, `DepartmentID`) VALUES ('2', '142', '1');
+INSERT INTO `Prereqs` (`MainCourseID`, `PrereqID`) VALUES ('1', '2');
