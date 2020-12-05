@@ -136,7 +136,14 @@ def contact(PersonID):
         except:
             course = None
 
-        return render_template('contact_student.html', title=str(contact.FName)+"_"+str(contact.LName), contact=contact, course=course, student=student, now=datetime.utcnow())
+        try:
+            result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
+            num_of_students = result.fetchall()[0][0]
+
+        except:
+            num_of_students = None
+
+        return render_template('contact_student.html', title=str(contact.FName)+"_"+str(contact.LName), num_of_students=num_of_students, contact=contact, course=course, student=student, now=datetime.utcnow())
 
 @app.route("/result", methods=['GET', 'POST'])
 def result():
