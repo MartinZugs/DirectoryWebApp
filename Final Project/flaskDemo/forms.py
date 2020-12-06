@@ -52,7 +52,7 @@ class ContactUpdateForm(FlaskForm):
 class ContactForm(ContactUpdateForm):
 
     EmployeeType= SelectField('Employee Type:', choices=[('Staff','Staff'),('Faculty','Faculty')])
-    Manager= SelectField(' Is a Manager:', choices=[(1,'Yes'),(0,'No')],coerce=int)
+    Manager= SelectField(' Is a Manager:', choices=[(0,'No'),(1,'Yes')],coerce=int)
     #old manager choice w/o db pull 
     #ManagerID = SelectField('Reports To:', choices=[(1,'Frank Zab'),(4,'Eric Testing'),(9,'Martin Zugschwert'),(10,'Eric Killham')], coerce=int )
     ManagerID = SelectField('Reports To:', choices=ManagerChoices, coerce=int )

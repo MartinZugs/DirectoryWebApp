@@ -189,6 +189,13 @@ def contact(PersonID):
                 except:
                     course = None
                 
+                try:
+                    result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
+                    num_of_students = result.fetchall()[0][0]
+
+                except:
+                    num_of_students = None
+                
             elif student.StudentType == "Graduate":
 
                 try:
@@ -203,12 +210,12 @@ def contact(PersonID):
                 except:
                     course = None
 
-            try:
-                result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
-                num_of_students = result.fetchall()[0][0]
+                try:
+                    result = db.engine.execute(f"SELECT COUNT(*) FROM Registered_For WHERE CourseID = {course.CourseID}")
+                    num_of_students = result.fetchall()[0][0]
 
-            except:
-                num_of_students = None
+                except:
+                    num_of_students = None
         
         except:
             enrolled_in = None
@@ -339,7 +346,7 @@ def new_employee():
         db.session.commit()
         
         current_emp = Person.query.filter_by(Email=form.Email.data).first()        
-        employee = Employee(ManagerID=form.ManagerID.data, PersonID=current_emp.PersonID, EmployeeType=form.EmployeeType.data) #set managerID to 10 for testing 
+        employee = Employee(ManagerID=form.ManagerID.data, PersonID=current_emp.PersonID, EmployeeType=form.EmployeeType.data) 
         db.session.add(employee)
         db.session.commit()
         flash('You have added a new contact!', 'success')
