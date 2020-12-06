@@ -4,6 +4,13 @@ from wtforms.validators import DataRequired, Length, Email, EqualTo,ValidationEr
 from flaskDemo import db
 from flaskDemo.models import Person, Student, Employee
 
+Managers = Person.query.with_entities(Person.PersonID).filter_by(Manager=1)
+results=list()
+for row in Managers:
+    rowDict=row._asdict()
+    results.append(rowDict)
+ManagerChoices = [(row['PersonID'],row['PersonID']) for row in results]
+
 
 
 class RegistrationForm(FlaskForm):
@@ -46,7 +53,9 @@ class ContactForm(ContactUpdateForm):
 
     EmployeeType= SelectField('Employee Type:', choices=[('Staff','Staff'),('Faculty','Faculty')])
     Manager= SelectField(' Is a Manager:', choices=[(1,'Yes'),(0,'No')],coerce=int)
-    ManagerID = SelectField('Reports To:', choices=[(1,'Frank Zab'),(4,'Eric Testing'),(9,'Martin Zugschwert'),(10,'Eric Killham')], coerce=int )
+    #old manager choice w/o db pull 
+    #ManagerID = SelectField('Reports To:', choices=[(1,'Frank Zab'),(4,'Eric Testing'),(9,'Martin Zugschwert'),(10,'Eric Killham')], coerce=int )
+    ManagerID = SelectField('Reports To:', choices=ManagerChoices, coerce=int )
     submit = SubmitField('Add this contact') 
     
     def validate_PersonID(self, PersonID):  

@@ -11,7 +11,6 @@ from datetime import datetime
 import json
 
 
-
 #moved the code from flaskdemo.py here since this will be the routes
 
 @app.route("/")
@@ -266,7 +265,7 @@ def new_student():
 
     form = StudentForm()
     if form.validate_on_submit():
-        contact = Person(FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType="Student", Manager='0')
+        contact = Person(FName=form.FName.data, LName=form.LName.data, Email=form.Email.data, PhoneNum=form.PhoneNum.data, UserType="Student", Manager=0)
         db.session.add(contact)
         db.session.commit()
         
@@ -303,7 +302,7 @@ def new_employee():
         db.session.commit()
         
         current_emp = Person.query.filter_by(Email=form.Email.data).first()        
-        employee = Employee(ManagerID="10", PersonID=current_emp.PersonID, EmployeeType=form.EmployeeType.data) #set managerID to 10 for testing 
+        employee = Employee(ManagerID=form.ManagerID.data, PersonID=current_emp.PersonID, EmployeeType=form.EmployeeType.data) #set managerID to 10 for testing 
         db.session.add(employee)
         db.session.commit()
         flash('You have added a new contact!', 'success')
