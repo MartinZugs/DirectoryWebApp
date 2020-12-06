@@ -4,7 +4,7 @@ import secrets
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from flask.globals import session
 from flaskDemo import app, db, bcrypt
-from flaskDemo.models import Person, User, Student, Employee, Faculty, Department, Office, Building, Campus, Course, Enrolled_In
+from flaskDemo.models import Person, User, Student, Employee, Faculty, Department, Office, Building, Campus, Course, Enrolled_In, Registered_For
 from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm, StudentForm
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
@@ -124,17 +124,33 @@ def contact(PersonID):
 
         student = Student.query.filter_by(PersonID=contact.PersonID).first()
 
-        try:
-            enrolled_in = Enrolled_In.query.filter_by(StudentID=student.StudentID).first()
+        if student.StudentType == "Undergrad":
 
-        except:
-            enrolled_in = None
+            try:
+                enrolled_in = Enrolled_In.query.filter_by(StudentID=student.StudentID).first()
 
-        try:
-            course = Course.query.filter_by(CourseID=enrolled_in.CourseID).first()
+            except:
+                enrolled_in = None
 
-        except:
-            course = None
+            try:
+                course = Course.query.filter_by(CourseID=enrolled_in.CourseID).first()
+
+            except:
+                course = None
+            
+        elif student.StudentType == "Graduate":
+
+            try:
+                registered_for = Registered_For.query.filter_by(StudentID=student.StudentID).first()
+
+            except:
+                registered_for = None
+
+            try:
+                course = Course.query.filter_by(CourseID=registered_for.CourseID).first()
+
+            except:
+                course = None
 
         try:
             result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
