@@ -4,6 +4,16 @@ pwd:  453Team5
 
 USE Team5;
 
+CREATE TABLE `user` (
+ `id` int(11) NOT NULL AUTO_INCREMENT,
+ `username` varchar(20) NOT NULL,
+ `email` varchar(120) NOT NULL,
+ `password` varchar(60) NOT NULL,
+ PRIMARY KEY (`id`),
+ UNIQUE KEY `username` (`username`),
+ UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8
+
 CREATE TABLE Person (
     PersonID int NOT NULL,
     FName varchar(150),
