@@ -87,41 +87,77 @@ def contact(PersonID):
         
         # All of this error catching is to avoid any possible problems causing the site to crash
         try:
-            try:
-                faculty = Faculty.query.filter_by(EmployeeID=employee.EmployeeID).first()
-            except:
-                faculty = None
+            if employee.EmployeeType == "Faculty":
+                try:
+                    faculty = Faculty.query.filter_by(EmployeeID=employee.EmployeeID).first()
+                except:
+                    faculty = None
 
-            try:
-                department = Department.query.filter_by(DepartmentID=faculty.DepartmentID).first()
+                try:
+                    department = Department.query.filter_by(DepartmentID=faculty.DepartmentID).first()
             
-            except:
-                department = None
+                except:
+                    department = None
             
-            try:
-                office = Office.query.filter_by(OfficeID=faculty.OfficeID).first()
+                try:
+                    office = Office.query.filter_by(OfficeID=faculty.OfficeID).first()
             
-            except:
-                office = None
+                except:
+                    office = None
             
-            try:
-                building = Building.query.filter_by(BuildingID=office.BuildingID).first()
-            
-            except:
-                building = None
+                try:
+                    building = Building.query.filter_by(BuildingID=office.BuildingID).first()
+                
+                except:
+                    building = None
 
-            try:
-                campus = Campus.query.filter_by(CampusID=building.CampusID).first()
+                try:
+                    campus = Campus.query.filter_by(CampusID=building.CampusID).first()
 
-            except:
-                campus = None
+                except:
+                    campus = None
             
-            try:
-                course = Course.query.filter_by(ProfID=faculty.EmployeeID).first()
+                try:
+                    course = Course.query.filter_by(ProfID=faculty.EmployeeID).first()
 
-            except:
-                course = None
+                except:
+                    course = None
+                    
+            elif employee.EmployeeType == "Staff":
+                try:
+                    staff = Staff.query.filter_by(EmployeeID=employee.EmployeeID).first()
+                except:
+                    staff = None
 
+                try:
+                    department = Department.query.filter_by(DepartmentID=staff.DepartmentID).first()
+            
+                except:
+                    department = None
+            
+                try:
+                    office = Office.query.filter_by(OfficeID=staff.OfficeID).first()
+            
+                except:
+                    office = None
+            
+                try:
+                    building = Building.query.filter_by(BuildingID=office.BuildingID).first()
+                
+                except:
+                    building = None
+
+                try:
+                    campus = Campus.query.filter_by(CampusID=building.CampusID).first()
+
+                except:
+                    campus = None
+            
+                try:
+                    course = Course.query.filter_by(ProfID=faculty.EmployeeID).first()
+
+                except:
+                    course = None
             try:
                 result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
                 num_of_students = result.fetchall()[0][0]
@@ -131,6 +167,7 @@ def contact(PersonID):
 
         except:
             faculty = None
+            staff = None
             department = None
             office = None
             building = None
@@ -160,6 +197,13 @@ def contact(PersonID):
                 except:
                     course = None
                 
+                try:
+                    result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
+                    num_of_students = result.fetchall()[0][0]
+
+                except:
+                    num_of_students = None
+                
             elif student.StudentType == "Graduate":
 
                 try:
@@ -174,12 +218,12 @@ def contact(PersonID):
                 except:
                     course = None
 
-            try:
-                result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
-                num_of_students = result.fetchall()[0][0]
+                try:
+                    result = db.engine.execute(f"SELECT COUNT(*) FROM Registered_For WHERE CourseID = {course.CourseID}")
+                    num_of_students = result.fetchall()[0][0]
 
-            except:
-                num_of_students = None
+                except:
+                    num_of_students = None
         
         except:
             enrolled_in = None
@@ -349,7 +393,7 @@ def new_employee():
         db.session.commit()
         
         current_emp = Person.query.filter_by(Email=form.Email.data).first()        
-        employee = Employee(ManagerID=form.ManagerID.data, PersonID=current_emp.PersonID, EmployeeType=form.EmployeeType.data) #set managerID to 10 for testing 
+        employee = Employee(ManagerID=form.ManagerID.data, PersonID=current_emp.PersonID, EmployeeType=form.EmployeeType.data) 
         db.session.add(employee)
         db.session.commit()
         flash('You have added a new contact!', 'success')
