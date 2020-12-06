@@ -33,3 +33,7 @@ Here is what has been added:
 - Added in content on the page when you click on someone's name
 - Wrote up all of the connection code so that this data can be pulled together
 - Split the contact page into different ones for employee and student and modified the routes.py to work with with that
+
+12/5 (EK)
+- Modified Manager Selection option on Employee Add form to be dynamically pulled from Managers on Person Table
+-Fixed Bugs: All students were managers and all employees were hard set to Manager '10' ... me :) 

@@ -21,6 +21,12 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"
 
+    def serialize(self):
+        return {
+            'id':self.id,
+            'username':self.username,
+            'Email': self.email
+            }
 class Person(db.Model):
     __table__ = db.Model.metadata.tables['Person']
     def serialize(self):

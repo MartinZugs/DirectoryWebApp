@@ -1,14 +1,22 @@
 import os
 import secrets
-
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import engine
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from flask.globals import session
 from flaskDemo import app, db, bcrypt
-from flaskDemo.models import Person, User, Student, Employee, Faculty, Staff, Department, Office, Building, Campus, Course, Enrolled_In, Registered_For
+from flaskDemo.models import *
 from flaskDemo.forms import RegistrationForm, LoginForm, SearchForm, ContactForm, ContactUpdateForm, StudentForm
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 import json
+
+dbengine: engine
+db: SQLAlchemy
+dbengine = db.engine
+connection = db.engine.connect()
+
+
 
 
 #moved the code from flaskdemo.py here since this will be the routes
@@ -232,20 +240,59 @@ def result():
 
 @app.route("/admin", methods=['GET', 'POST'])
 def admin():
+    if not current_user.is_authenticated:
+        flash('You are not allowed to go to the manager page', 'danger')
+        return redirect(url_for('home'))
+    current_contact = Person.query.filter_by(Email=current_user._get_current_object().email).first()
+    if current_contact == None:
+
+        flash('You are not allowed to go to the manager page', 'danger')
+        return redirect(url_for('home'))
+
+    elif current_contact.Manager == 0:
+        
+        flash('You are not allowed to go to the manager page', 'danger')
+        return redirect(url_for('home'))
     # i think i need to send all of the content to the page because otherwise I will need to keep resending stuff
     persons = Person.query.all()
     return render_template('admin.html', title='Admin', people= persons)
 
 @app.route("/admin/manage", methods=['GET', 'POST'])
+@login_required
 def manage():
+    current_contact = Person.query.filter_by(Email=current_user._get_current_object().email).first()
     if request.method == 'GET':
+        if current_contact == None:
+
+            flash('You are not allowed to add a new entry', 'danger')
+            return redirect(url_for('home'))
+
+        elif current_contact.Manager == 0:
+        
+            flash('You are not allowed to add a new entry', 'danger')
+            return redirect(url_for('home'))
         model = request.args.get("model")
         
         data = getModel(model)
         # results =  []
-        
-        
+       
         return jsonify(data)
+    else:
+        data = request.get_json()
+        result = insertItem(data)
+        
+        if result:
+            return "Added "+ data['model']
+        else:
+            flash('Failed to add ' + data['model'], 'danger')
+            return ""
+        return "test"
+
+@app.route("/admin/modelDetails", methods=['GET'])
+def getModelDetails():
+    if request.method == 'GET':
+        data = getModelFields(request.args.get("model")) #this grabs specific details for each model so that the website can adjust the forms
+        return data
     return "test"
 
 @app.route("/settings", methods=['GET', 'POST'])
@@ -445,7 +492,7 @@ def updatecontact(PersonID):
 
 def getModel(model):
     session = db.session
-
+    
     if (model == "Employee"):
 
         items = session.query(Person,Employee).filter(Person.PersonID == Employee.PersonID).all()
@@ -455,7 +502,7 @@ def getModel(model):
             person = item.Person.serialize()
             employee = item.Employee.serialize()
             Merge(person,employee)
-            print(person)
+            #print(person)
             results.append(person)
         return results
     elif (model == "All"):
@@ -466,12 +513,15 @@ def getModel(model):
         return results
     elif (model == "Student"):
         items = session.query(Student,Person).filter(Person.PersonID == Student.PersonID).all()
+        test = Student.query.all()
+        #for item in test:
+        #    print(item)
         results = []
         for item in items:
             person = item.Person.serialize()
             student = item.Student.serialize()
             Merge(person,student)
-            print(person)
+            #print(person)
             results.append(person)
         return results
     elif (model == "Campus"):
@@ -510,6 +560,7 @@ def getModel(model):
         return results
     elif (model == "Faculty"):
         results = []
+        
         items = session.query(Faculty, Employee, Person).filter(Employee.EmployeeID == Faculty.EmployeeID).filter(Employee.PersonID == Person.PersonID).all()
         for item in items:
             faculty = item.Faculty.serialize()
@@ -520,40 +571,301 @@ def getModel(model):
             results.append(faculty)
         return results
     elif (model == "Course"):
+        items = session.query(Course, Prereqs).filter(Course.CourseID == Prereqs.MainCourseID).all()
         results = []
+        for item in items:
+            course = item.Course.serialize()
+            prereqs = item.Prereqs.serialize()
+            Merge(course, prereqs)
+            results.append(course)
         return results
     elif (model == "Prereqs"):
-        results = []
+        cmd = 'SELECT * FROM Prereqs JOIN Course on Prereqs.MainCourseID = Course.CourseID;'
+        items = connection.execute(cmd)
+        print(items)
+        results = convert_to_dict(items)
+        
+        #results.append(items)
         return results
     elif (model == "Undergrad"):
-        results = []
+        cmd = 'SELECT * FROM Undergrad JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Undergrad.StudentID = y.StudentID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
     elif (model == "Enrolled_In"):
-        results = []
+        cmd = 'SELECT * FROM Enrolled_In JOIN (SELECT Undergrad.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Undergrad JOIN Student on Student.StudentID = Undergrad.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Enrolled_In.StudentID = y.StudentID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
     elif (model == "Graduate"):
-        results = []
+        cmd = 'SELECT * FROM Graduate JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Graduate.StudentID = y.StudentID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
     elif (model == "Registered_For"):
-        results = []
+        cmd = 'SELECT * FROM Registered_For JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Registered_For.StudentID = y.StudentID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
     elif (model == "Teaching_Assistant"):
-        results = []
+        cmd = 'SELECT * FROM Teaching_Assistant JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Teaching_Assistant.StudentID = y.StudentID JOIN Course on Course.CourseID = Teaching_Assistant.CourseID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
     elif (model == "Research_Assistant"):
-        results = []
+        cmd = 'SELECT * FROM Research_Assistant JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Research_Assistant.StudentID = y.StudentID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
     elif (model == "Alumni"):
-        results = []
+        cmd = 'SELECT * FROM Alumni JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Alumni.StudentID = y.StudentID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
     elif (model == "Retiree"):
-        results = []
+        cmd = 'SELECT * FROM Retiree JOIN (Select Employee.EmployeeID, Employee.PersonID, Person.FName, Person.LName, Person.Email, Person.PhoneNum From Employee Join Person on Employee.PersonID = Person.PersonID) as y on y.EmployeeID = Retiree.EmployeeID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
     elif (model == "Staff"):
-        results = []
+        cmd = 'SELECT * FROM Staff JOIN (Select Employee.EmployeeID, Employee.PersonID, Person.FName, Person.LName, Person.Email, Person.PhoneNum From Employee Join Person on Employee.PersonID = Person.PersonID) as y on y.EmployeeID = Staff.EmployeeID'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
         return results
-    
+    elif (model == "User"):
+        cmd = 'SELECT user.id, user.username, user.email, Person.FName, Person.LName, Person.PhoneNum FROM user JOIN Person on user.email = Person.email'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        return results
+    elif (model =="Employed Students"):
+        text_stmt = db.text("select PersonID, EmployeeID from Employee").columns(
+            Employee.PersonID, Employee.EmployeeID)
+        qry = session.query(Student).select_entity_from(text_stmt).filter(Student.PersonID == Employee.PersonID)
+        items = session.execute(qry).fetchall()
+        results = []
+        for item in items:
+            dict = {"StudentID":item[0], "PersonID": item[1], "EnrollmentStatus": item[2], "CreditHoursTotal": item[3], "StudentType": item[4]}
+            results.append(dict)
+        return results
     return None
+
+
+def getModelFields(model):
+    item = {}
+    
+    if (model == "All"):
+        item = Person().serialize()
+        item.pop('PersonID')
+        item['Manager'] = 'bool'
+        item['UserType'] = [{'type':'Student'},{'type':'Employee'}]
+    elif (model == "Student"):
+        item = Student().serialize()
+        item['StudentType'] = [{'type':'Undergrad'},{'type':'Graduate'}]
+
+        cmd = 'SELECT Person.PersonID, Person.FName, Person.LName FROM Person;'
+        items = connection.execute(cmd)
+        
+        results = convert_to_dict(items)
+        
+        item['PersonID'] = convert_to_dict(items)
+    elif (model == "Employee"):
+        item = Employee().serialize()
+        item.pop('EmployeeID')
+
+        cmd = 'SELECT Employee.EmployeeID, Person.FName, Person.LName FROM Employee JOIN Person on Employee.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        results.append({'EmployeeID': None})
+        item['ManagerID'] = results
+
+        cmd = 'SELECT Person.PersonID, Person.FName, Person.LName FROM Person;'
+        items = connection.execute(cmd)
+
+        item['PersonID'] = convert_to_dict(items)
+        item["EmployeeType"] = [{'type':'Staff'}, {'type':'Faculty'},{'type':'Retiree'}]
+    elif (model == "Campus"):
+        item = Campus().serialize()
+        item.pop("CampusID")
+    elif (model == "Building"):
+        item = Building().serialize()
+        item.pop("BuildingID")
+        cmd = 'SELECT Campus.CampusID, Campus.CampusName FROM Campus;'
+        items = connection.execute(cmd)
+        
+        item['CampusID'] = convert_to_dict(items)
+    elif (model == "Department"):
+        item = Department().serialize()
+        item.pop("DepartmentID")
+        cmd = 'SELECT Building.BuildingID, Building.BuildingName FROM Building;'
+        items = connection.execute(cmd)
+        
+        item['BuildingID'] = convert_to_dict(items)
+
+    elif (model == "Office"):
+        item = Office().serialize()
+        item.pop('OfficeID')
+        cmd = 'SELECT Building.BuildingID, Building.BuildingName FROM Building;'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        item['BuildingID'] = results
+    elif (model == "Faculty"):
+        item = Faculty().serialize()
+        cmd = 'SELECT Employee.EmployeeID, Person.FName, Person.LName FROM Employee JOIN Person on Employee.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['EmployeeID'] = convert_to_dict(items)
+        
+        cmd = 'SELECT Office.OfficeID, Building.BuildingName FROM Office JOIN Building on Building.BuildingID = Office.BuildingID;'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        results.append({'OfficeID': None})
+        item["OfficeID"] = results
+
+        cmd = 'SELECT Department.DepartmentID, Department.DepartmentName FROM Department;'
+        items = connection.execute(cmd)
+        item['DepartmentID'] = convert_to_dict(items)
+    elif (model == "Course"):
+        item = Course().serialize()
+        item.pop("CourseID")
+        cmd = 'SELECT Employee.EmployeeID, Person.FName, Person.LName FROM Employee JOIN Person on Employee.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['ProfID'] = convert_to_dict(items)
+    elif (model == "Prereqs"):
+        item = Prereqs().serialize()
+        cmd = 'SELECT Course.CourseDescription, Course.CourseID, Course.CourseName FROM Course;' #we need to add courseName to course
+        items = connection.execute(cmd)
+        item['MainCourseID'] = convert_to_dict(items)
+        items = connection.execute(cmd)
+        item['PrereqID'] = convert_to_dict(items)
+    elif (model == "Undergrad"):
+        item = Undergrad().serialize()
+        cmd = 'SELECT Student.StudentID, Person.FName, Person.LName FROM Student JOIN Person on Student.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['StudentID'] = convert_to_dict(items)
+    elif (model == "Enrolled_In"):
+        item = Enrolled_In().serialize()
+        cmd = 'SELECT Undergrad.StudentID, Person.FName, Person.LName FROM Undergrad JOIN Student on Student.StudentID = Undergrad.StudentID JOIN Person on Student.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['StudentID'] = convert_to_dict(items)
+        cmd = 'SELECT Course.CourseDescription, Course.CourseID, Course.CourseName FROM Course;' #we need to add courseName to course
+        items = connection.execute(cmd)
+        item['CourseID'] = convert_to_dict(items)
+    elif (model == "Graduate"):
+        item = Graduate().serialize()
+        cmd = 'SELECT Student.StudentID, Person.FName, Person.LName FROM Student JOIN Person on Student.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['StudentID'] = convert_to_dict(items)
+    elif (model == "Registered_For"):
+        item = Registered_For().serialize()
+        cmd = 'SELECT Graduate.StudentID, Person.FName, Person.LName FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Student.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['StudentID'] = convert_to_dict(items)
+        cmd = 'SELECT Course.CourseDescription, Course.CourseID, Course.CourseName FROM Course;' #we need to add courseName to course
+        items = connection.execute(cmd)
+        item['CourseID'] = convert_to_dict(items)
+    elif (model == "Teaching_Assistant"):
+        item = Teaching_Assistant().serialize()
+        cmd = 'SELECT Graduate.StudentID, Person.FName, Person.LName FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Student.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['StudentID'] = convert_to_dict(items)
+        cmd = 'SELECT Course.CourseDescription, Course.CourseID, Course.CourseName FROM Course;' #we need to add courseName to course
+        items = connection.execute(cmd)
+        item['CourseID'] = convert_to_dict(items)
+    elif (model == "Research_Assistant"):
+        item = Research_Assistant().serialize()
+        cmd = 'SELECT Graduate.StudentID, Person.FName, Person.LName FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Student.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['StudentID'] = convert_to_dict(items)
+    elif (model == "Alumni"):
+        item = Alumni().serialize()
+        cmd = 'SELECT Student.StudentID, Person.FName, Person.LName FROM Student JOIN Person on Student.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['StudentID'] = convert_to_dict(items)
+    elif (model == "Retiree"):
+        item = Retiree().serialize()
+        cmd = 'SELECT Employee.EmployeeID, Person.FName, Person.LName FROM Employee JOIN Person on Employee.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['EmployeeID'] = convert_to_dict(items)
+    elif (model == "Staff"):
+        item = Staff().serialize()
+        cmd = 'SELECT Employee.EmployeeID, Person.FName, Person.LName FROM Employee JOIN Person on Employee.PersonID = Person.PersonID;'
+        items = connection.execute(cmd)
+        item['EmployeeID'] = convert_to_dict(items)
+        cmd = 'SELECT Office.OfficeID, Building.BuildingName FROM Office JOIN Building on Building.BuildingID = Office.BuildingID;'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        results.append({'OfficeID': None})
+        item["OfficeID"] = results
+
+        cmd = 'SELECT Department.DepartmentID, Department.DepartmentName FROM Department;'
+        items = connection.execute(cmd)
+        item['DepartmentID'] = convert_to_dict(items)
+    elif (model == "User"):
+        item = User().serialize()
+
+    return item
+
 
 def Merge(dict1, dict2):
     return (dict1.update(dict2))
+
+def convert_to_dict(resultproxy):
+    d, a = {}, []
+    for rowproxy in resultproxy:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        a.append(d)
+    return a
+
+def insertItem(data):
+    print(data)
+    if (data['model'] == 'All'):
+        item = Person(FName=data['FName'], LName=data['LName'], Email=data['Email'], PhoneNum=data['PhoneNum'], UserType=data['UserType'], Manager=data['Manager'])
+    elif (data['model'] == 'User'):
+        #not sure if we should have this because they would need to set the password
+        return False
+    elif (data['model'] == 'Employee'):
+        item = Employee(ManagerID = data['ManagerID'], PersonID = data['PersonID'], EmployeeType = ['EmployeeType'])
+    elif (data['model'] == 'Student'):
+         item = Employee(PersonID = data['PersonID'], EnrollmentStatus = data['EnrollmentStatus'], CreditHoursTotal = data['CreditHoursTotal'], StudentType = data['StudentType'])
+    elif (data['model'] == 'Campus'):
+        item = Campus(CampusName = data['CampusName'])
+    elif (data['model'] == 'Building'):
+        item = Building(CampusID = data['CampusID'], BuildingName = data['BuildingName'], BuildingAddress = data['BuildingAddress'])
+    elif (data['model'] == 'Department'):
+        item = Department(DepartmentName = data['DepartmentName'], BuildingID = data['BuildingID'])
+    elif (data['model'] == 'Office'):
+        item = Office(BuildingID = data['BuildingID'])
+    elif (data['model'] == 'Faculty'):
+        item = Faculty(EmployeeID = data['EmployeeID'], OfficeID = ['OfficeID'], DepartmentID = ['DepartmentID'])
+    elif (data['model'] == 'Course'):
+        item = Course(ProfID = data['ProfID'], CourseDescription = data['CourseDescription'], CourseName = data['CourseName'])
+    elif (data['model'] == 'Prereqs'):
+        item = Prereqs(MainCourseID = data['MainCourseID'], PrereqID = data['PrereqID'])
+    elif (data['model'] == 'Undergrad'):
+        item = Undergrad(StudentID = data['StudentID'])
+    elif (data['model'] == 'Enrolled_In'):
+        item = Enrolled_In(StudentID = data['StudentID'], CourseID = data['CourseID'])
+    elif (data['model'] == 'Graduate'):
+        item = Graduate(StudentID = data['StudentID'], UGCompDate = data['UGCompDate'], GraduateType = data['GraduateType'])
+    elif (data['model'] == 'Registered_For'):
+        item = Registered_For(StudentID = data['StudentID'], CourseID = data['CourseID'])
+    elif (data['model'] == 'Teaching_Assistant'):
+        item = Teaching_Assistant(StudentID = data['StudentID'], CourseID = data['CourseID'])
+    elif (data['model'] == 'Research_Assistant'):
+        item = Reasearch_Assistant(StudentID = data['StudentID'], ResearchFocus = data['ResearchFocus'])
+    elif (data['model'] == 'Alumni'):
+        item = Alumni(StudentID = data['StudentID'], GraduationDate = data['GraduationDate'], FinalSemester = data['FinalSemester'])
+    elif (data['model'] == 'Retiree'):
+        item = Retiree(EmployeeID = data['EmployeeID'], RetirementDate = data['RetirementDate'], RetirementPackage = data['RetirementPackage'])
+    elif (data['model'] == 'Staff'):
+        item = Staff(EmployeeID = data['EmployeeID'], OfficeID = ['OfficeID'], DepartmentID = ['DepartmentID'])
+    try:
+        db.session.add(item)
+        db.session.commit()
+        return True
+    except:
+        return False
+        
+    

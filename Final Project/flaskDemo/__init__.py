@@ -11,6 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://Team5:453Team5@45.55.59.121/Tea
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 db = SQLAlchemy(app)#setup db
+
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'

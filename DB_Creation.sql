@@ -79,6 +79,7 @@ CREATE TABLE Course (
     CourseID int NOT NULL,
     ProfID int,
     CourseDescription varchar(300),
+    CourseName varchar(50),
     NoOfSeats int,
     Credits int,
     CONSTRAINT course_pk PRIMARY KEY (CourseID),
