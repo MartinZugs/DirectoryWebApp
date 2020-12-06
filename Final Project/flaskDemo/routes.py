@@ -16,7 +16,9 @@ import json
 @app.route("/")
 @app.route("/home")
 def home():
-    results = Person.query.all()
+    results = db.engine.execute(f"SELECT * FROM Person")
+
+    results = results.fetchall()
     
     return render_template('home.html', title='Home',allpersons=results)
 
@@ -75,46 +77,57 @@ def contact(PersonID):
 
         employee = Employee.query.filter_by(PersonID=contact.PersonID).first()
         
+        # All of this error catching is to avoid any possible problems causing the site to crash
         try:
-            faculty = Faculty.query.filter_by(EmployeeID=employee.EmployeeID).first()
+            try:
+                faculty = Faculty.query.filter_by(EmployeeID=employee.EmployeeID).first()
+            except:
+                faculty = None
+
+            try:
+                department = Department.query.filter_by(DepartmentID=faculty.DepartmentID).first()
+            
+            except:
+                department = None
+            
+            try:
+                office = Office.query.filter_by(OfficeID=faculty.OfficeID).first()
+            
+            except:
+                office = None
+            
+            try:
+                building = Building.query.filter_by(BuildingID=office.BuildingID).first()
+            
+            except:
+                building = None
+
+            try:
+                campus = Campus.query.filter_by(CampusID=building.CampusID).first()
+
+            except:
+                campus = None
+            
+            try:
+                course = Course.query.filter_by(ProfID=faculty.EmployeeID).first()
+
+            except:
+                course = None
+
+            try:
+                result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
+                num_of_students = result.fetchall()[0][0]
+
+            except:
+                num_of_students = None
+
         except:
             faculty = None
-
-        try:
-            department = Department.query.filter_by(DepartmentID=faculty.DepartmentID).first()
-        
-        except:
             department = None
-        
-        try:
-            office = Office.query.filter_by(OfficeID=faculty.OfficeID).first()
-        
-        except:
             office = None
-        
-        try:
-            building = Building.query.filter_by(BuildingID=office.BuildingID).first()
-        
-        except:
             building = None
-
-        try:
-            campus = Campus.query.filter_by(CampusID=building.CampusID).first()
-
-        except:
             campus = None
-        
-        try:
-            course = Course.query.filter_by(ProfID=faculty.EmployeeID).first()
-
-        except:
             course = None
-
-        try:
-            result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
-            num_of_students = result.fetchall()[0][0]
-
-        except:
             num_of_students = None
 
         return render_template('contact_employee.html', title=str(contact.FName)+"_"+str(contact.LName), num_of_students=num_of_students, contact=contact, course=course, employee=employee, campus=campus, department=department, office=office, building=building, now=datetime.utcnow())
@@ -123,39 +136,47 @@ def contact(PersonID):
 
         student = Student.query.filter_by(PersonID=contact.PersonID).first()
 
-        if student.StudentType == "Undergrad":
-
-            try:
-                enrolled_in = Enrolled_In.query.filter_by(StudentID=student.StudentID).first()
-
-            except:
-                enrolled_in = None
-
-            try:
-                course = Course.query.filter_by(CourseID=enrolled_in.CourseID).first()
-
-            except:
-                course = None
-            
-        elif student.StudentType == "Graduate":
-
-            try:
-                registered_for = Registered_For.query.filter_by(StudentID=student.StudentID).first()
-
-            except:
-                registered_for = None
-
-            try:
-                course = Course.query.filter_by(CourseID=registered_for.CourseID).first()
-
-            except:
-                course = None
-
+        # All of this error catching is to avoid any possible problems causing the site to crash
         try:
-            result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
-            num_of_students = result.fetchall()[0][0]
+            if student.StudentType == "Undergrad":
 
+                try:
+                    enrolled_in = Enrolled_In.query.filter_by(StudentID=student.StudentID).first()
+
+                except:
+                    enrolled_in = None
+
+                try:
+                    course = Course.query.filter_by(CourseID=enrolled_in.CourseID).first()
+
+                except:
+                    course = None
+                
+            elif student.StudentType == "Graduate":
+
+                try:
+                    registered_for = Registered_For.query.filter_by(StudentID=student.StudentID).first()
+
+                except:
+                    registered_for = None
+
+                try:
+                    course = Course.query.filter_by(CourseID=registered_for.CourseID).first()
+
+                except:
+                    course = None
+
+            try:
+                result = db.engine.execute(f"SELECT COUNT(*) FROM Enrolled_In WHERE CourseID = {course.CourseID}")
+                num_of_students = result.fetchall()[0][0]
+
+            except:
+                num_of_students = None
+        
         except:
+            enrolled_in = None
+            course = None
+            registered_for = None
             num_of_students = None
 
         return render_template('contact_student.html', title=str(contact.FName)+"_"+str(contact.LName), num_of_students=num_of_students, contact=contact, course=course, student=student, now=datetime.utcnow())
