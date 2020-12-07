@@ -13,8 +13,8 @@ import json
 
 dbengine: engine
 db: SQLAlchemy
-dbengine = db.engine
-connection = db.engine.connect()
+
+
 
 
 
@@ -294,7 +294,8 @@ def manage():
 @app.route("/admin/edit", methods=['POST'])
 def adminEdit():
     data = request.get_json()
-    print(data)
+    #print(data)
+    updateEntry(data)
     return {"data": None, "result": "success"}
 
 @app.route("/admin/delete", methods=['POST'])
@@ -506,7 +507,7 @@ def updatecontact(PersonID):
 
 def getModel(model):
     session = db.session
-    
+    connection = db.engine.connect()
     if (model == "Employee"):
 
         items = session.query(Person,Employee).filter(Person.PersonID == Employee.PersonID).all()
@@ -666,7 +667,7 @@ def getModel(model):
 
 def getModelFields(model):
     item = {}
-    
+    connection = db.engine.connect()
     if (model == "All"):
         item = Person().serialize()
         item.pop('PersonID')
@@ -679,7 +680,6 @@ def getModelFields(model):
         cmd = 'SELECT Person.PersonID, Person.FName, Person.LName FROM Person;'
         items = connection.execute(cmd)
         
-        results = convert_to_dict(items)
         
         item['PersonID'] = convert_to_dict(items)
     elif (model == "Employee"):
@@ -833,6 +833,8 @@ def convert_to_dict(resultproxy):
     return a
 
 def insertItem(data):
+    session = db.session
+    connection = db.engine.connect()
     print(data)
     if (data['model'] == 'All'):
         item = Person(FName=data['FName'], LName=data['LName'], Email=data['Email'], PhoneNum=data['PhoneNum'], UserType=data['UserType'], Manager=data['Manager'])
@@ -840,59 +842,246 @@ def insertItem(data):
         #not sure if we should have this because they would need to set the password
         return False
     elif (data['model'] == 'Employee'):
-        item = Employee(ManagerID = data['ManagerID'], PersonID = data['PersonID'], EmployeeType = ['EmployeeType'])
+        item = Employee()
+        if data['ManagerID'] == '':
+            item.ManagerID = None
+        else:
+            item.ManagerID = data['ManagerID']
+        item.PersonID = int(data['PersonID'])
+        item.EmployeeType = data['EmployeeType']
+        #insert(item)
+        #connection.execute(act)
+
+        print(item)
     elif (data['model'] == 'Student'):
-         item = Employee(PersonID = data['PersonID'], EnrollmentStatus = data['EnrollmentStatus'], CreditHoursTotal = data['CreditHoursTotal'], StudentType = data['StudentType'])
+         item = Student(PersonID = data['PersonID'], EnrollmentStatus = data['EnrollmentStatus'], CreditHoursTotal = data['CreditHoursTotal'], StudentType = data['StudentType'])
+         print(item)
     elif (data['model'] == 'Campus'):
         item = Campus(CampusName = data['CampusName'])
     elif (data['model'] == 'Building'):
         item = Building(CampusID = data['CampusID'], BuildingName = data['BuildingName'], BuildingAddress = data['BuildingAddress'])
     elif (data['model'] == 'Department'):
-        item = Department(DepartmentName = data['DepartmentName'], BuildingID = data['BuildingID'])
+        item = Department(DepartmentName = data['DepartmentName'], BuildingID = int(data['BuildingID']))
     elif (data['model'] == 'Office'):
-        item = Office(BuildingID = data['BuildingID'])
+        item = Office(BuildingID = int(data['BuildingID']))
     elif (data['model'] == 'Faculty'):
-        item = Faculty(EmployeeID = data['EmployeeID'], OfficeID = ['OfficeID'], DepartmentID = ['DepartmentID'])
+        item = Faculty(EmployeeID = data['EmployeeID'], OfficeID = data['OfficeID'], DepartmentID = data['DepartmentID'])
     elif (data['model'] == 'Course'):
-        item = Course(ProfID = data['ProfID'], CourseDescription = data['CourseDescription'], CourseName = data['CourseName'])
+        item = Course(ProfID = data['ProfID'], CourseDescription = data['CourseDescription'])
     elif (data['model'] == 'Prereqs'):
         item = Prereqs(MainCourseID = data['MainCourseID'], PrereqID = data['PrereqID'])
     elif (data['model'] == 'Undergrad'):
-        item = Undergrad(StudentID = data['StudentID'])
+        #item = Undergrad(StudentID = int(data['StudentID']))
+        #act = db.insert(Undergrad).values(StudentID = int(data['StudentID']))
+        #connection.execute(act)
+        #return data
+        #Undergrad.insert().values(StudentID = int(data['StudentID']))
+        cmd = 'INSERT INTO Undergrad (StudentID) VALUES ('+data['StudentID']+')'
+        items = connection.execute(cmd)
+        return data
+        print(item)
     elif (data['model'] == 'Enrolled_In'):
         item = Enrolled_In(StudentID = data['StudentID'], CourseID = data['CourseID'])
     elif (data['model'] == 'Graduate'):
-        item = Graduate(StudentID = data['StudentID'], UGCompDate = data['UGCompDate'], GraduateType = data['GraduateType'])
+        #item = Graduate(StudentID = data['StudentID'], UGCompDate = data['UGCompDate'], GraduateType = data['GraduateType'])
+        cmd = 'INSERT INTO Graduate (StudentID, UGCompDate, GraduateType) VALUES ('+data['StudentID']+', '+data['UGCompDate']+', '+data['GraduateType']+ ')'
+        items = connection.execute(cmd)
+        return data
     elif (data['model'] == 'Registered_For'):
         item = Registered_For(StudentID = data['StudentID'], CourseID = data['CourseID'])
     elif (data['model'] == 'Teaching_Assistant'):
-        item = Teaching_Assistant(StudentID = data['StudentID'], CourseID = data['CourseID'])
+        #item = Teaching_Assistant(StudentID = data['StudentID'], CourseID = data['CourseID'])
+        cmd = 'INSERT INTO Teaching_Assistant (StudentID, CourseID) VALUES ('+data['StudentID']+', '+data['CourseID']+')'
+        items = connection.execute(cmd)
+        return data
     elif (data['model'] == 'Research_Assistant'):
-        item = Reasearch_Assistant(StudentID = data['StudentID'], ResearchFocus = data['ResearchFocus'])
+        #item = Research_Assistant(StudentID = data['StudentID'], ResearchFocus = data['ResearchFocus'])
+        cmd = 'INSERT INTO Research_Assistant (StudentID, ResearchFocus) VALUES ('+data['StudentID']+', "'+data['ResearchFocus']+'")'
+        items = connection.execute(cmd)
+        return data
     elif (data['model'] == 'Alumni'):
         item = Alumni(StudentID = data['StudentID'], GraduationDate = data['GraduationDate'], FinalSemester = data['FinalSemester'])
+        #cmd = 'INSERT INTO Alumni (StudentID, GraduationDate, FinalSemester) VALUES ('+data['StudentID']+', "'+data['GraduationDate']+'", "'+data['FinalSemester']+'")'
+        #items = connection.execute(cmd)
+        #return data
     elif (data['model'] == 'Retiree'):
         item = Retiree(EmployeeID = data['EmployeeID'], RetirementDate = data['RetirementDate'], RetirementPackage = data['RetirementPackage'])
     elif (data['model'] == 'Staff'):
-        item = Staff(EmployeeID = data['EmployeeID'], OfficeID = ['OfficeID'], DepartmentID = ['DepartmentID'])
-    try:
-        db.session.add(item)
-        db.session.flush()
-        db.session.commit()
-        return item.serialize()
-    except:
-        return False
+        item = Staff(EmployeeID = data['EmployeeID'], OfficeID = data['OfficeID'], DepartmentID = data['DepartmentID'])
+    
+  
+    session.add(item)
+    session.flush()
+    session.commit()
+    print(item)
+    
+    return item.serialize()
+    
         
     
 def deleteItemQuery(data):
-    print(data)
+    #print(data)
+    itemsToDelete = []
     for item in data:
+        
         if (item['model'] == 'Person'):
             itemToDelete = Person.query.get_or_404(item['id'])
             db.session.delete(itemToDelete)
+        elif (item['model'] == 'Prereqs'):
+            #itemsToDelete.append(Prereqs.query.filter(Prereqs.MainCourseID == item['id'][0] ,Prereqs.PrereqID == item['id'][1]))
+            itemToDelete = Prereqs.query.get_or_404((item['id'][0] , item['id'][1]))
+            db.session.delete(itemToDelete)
             
-    try:
+
+        elif (item['model'] == 'User'):
+            #not sure if we should have this because they would need to set the password
+            return False
+        elif (item['model'] == 'Employee'):
+            itemToDelete = Employee.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Student'):
+            itemToDelete = Student.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Campus'):
+            itemToDelete = Campus.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Building'):
+            itemToDelete = Building.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Department'):
+            itemToDelete = Department.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Office'):
+            itemToDelete = Office.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Faculty'):
+            itemToDelete = Faculty.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Course'):
+            itemToDelete = Course.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
         
+        elif (item['model'] == 'Undergrad'):
+            itemToDelete = Undergrad.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Enrolled_In'):
+            itemToDelete = Enrolled_In.query.get_or_404((item['id'][0],item['id'][1]))
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Graduate'):
+            itemToDelete = Graduate.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Registered_For'):
+            itemToDelete = Registered_For.query.get_or_404((item['id'][0],item['id'][1]))
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Teaching_Assistant'):
+            itemToDelete = Teaching_Assistant.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Research_Assistant'):
+            itemToDelete = Research_Assistant.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Alumni'):
+            itemToDelete = Alumni.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Retiree'):
+            itemToDelete = Retiree.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+        elif (item['model'] == 'Staff'):
+            itemToDelete = Staff.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+    try:
+        #print(itemsToDelete)
+        #for item in itemsToDelete:
+        #    item.delete()
+       
+        db.session.commit()
+        return True
+    except:
+        return False
+    
+
+def updateEntry(data):
+    print(data)
+    if (data['model'] == 'All'):
+        person = Person.query.filter_by(PersonID = data['id']).first()
+        print(person)
+        person.FName = data['FName']
+        person.LName = data['LName']
+        person.Manager = data['Manager']
+        person.Email   = data['Email']
+        person.PhoneNum = data['PhoneNum']
+        person.UserType = data['UserType']
+        
+    elif (data['model'] == 'User'):
+        #not sure if we should have this because they would need to set the password
+        return False
+    elif (data['model'] == 'Employee'):
+        employee = Employee.query.filter_by(PersonID = data['id']).first()
+        if data['ManagerID'] == '':
+            employee.ManagerID = None
+        else:
+            employee.ManagerID = data['ManagerID']
+        employee.PersonID = data['PersonID']
+        employee.EmployeeType = data['EmployeeType']
+    elif (data['model'] == 'Student'):
+        student = Student.query.filter_by(StudentID = data['id']).first()
+        student.PersonID = data['PersonID']
+        student.EnrollmentStatus = data['EnrollmentStatus']
+        student.CreditHoursTotal = data['CreditHoursTotal']
+        student.StudentType = data['StudentType']
+    elif (data['model'] == 'Campus'):
+        campus = Campus.query.filter_by(CampusID = data['id']).first()
+        campus.CampusName = data['CampusName']  
+    elif (data['model'] == 'Building'):
+        building = Building.query.filter_by(BuildingID = data['id']).first()
+        building.CampusID = data['CampusID']
+        building.BuildingName = data['BuildingName']
+        building.BuildingAddress = data['BuildingAddress']
+    elif (data['model'] == 'Department'):
+        department = Department.query.filter_by(DepartmentID = data['id']).first()
+        department.BuildingID = data['BuildingID']
+        department.DepartmentName = data['DepartmentName']
+    elif (data['model'] == 'Office'):
+        office = Office.query.filter_by(OfficeID = data['id']).first()
+        office.BuildingID = data['BuildingID']
+    elif (data['model'] == 'Faculty'):
+        faculty = Faculty.query.filter_by(EmployeeID = data['id']).first()
+        faculty.OfficeID = data['OfficeID']
+        faculty.DepartmentID = data['DepartmentID']
+    elif (data['model'] == 'Course'):
+        course = Course.query.filter_by(CourseID = data['id']).first()
+        course.ProfID = data['ProfID']
+        course.CourseDescription = data['CourseDescription']
+        course.CourseName = data['CourseName']
+        course.NoOfSeats = data['NoOfSeats']
+        course.Credits = data['Credits']
+    #elif (data['model'] == 'Prereqs'):
+        #imposible to edit
+    #elif (data['model'] == 'Undergrad'):imposible to edit
+    #elif (data['model'] == 'Enrolled_In'):#imposible to edit
+    elif (data['model'] == 'Graduate'):
+        graduate = Graduate.query.filter_by(StudentID = data['id']).first()
+        graduate.UGCompDate = data['UGCompDate']
+        graduate.GraduateType = data['GraduateType']
+    #elif (data['model'] == 'Registered_For'): #imposible to edit
+    elif (data['model'] == 'Teaching_Assistant'):
+        teaching_Assistant = Teaching_Assistant.query.filter_by(StudentID = data['id']).first()
+        teaching_Assistant.CourseID = data['CourseID']
+    elif (data['model'] == 'Research_Assistant'):
+        research_Assistant = Research_Assistant.query.filter_by(StudentID = data['id']).first()
+        research_Assistant.ResearchFocus = data['ResearchFocus']
+    elif (data['model'] == 'Alumni'):
+        alumni = Alumni.query.filter_by(StudentID = data['id']).first()
+        alumni.GraduationDate = data['GraduationDate']
+        alumni.FinalSemester = data['FinalSemester']
+    elif (data['model'] == 'Retiree'):
+        retiree = Retiree.query.filter_by(EmployeeID = data['id']).first()
+        retiree.RetirementDate = data['RetirementDate']
+        retiree.RetirementDate = data['RetirementDate']
+    elif (data['model'] == 'Staff'):
+        staff = Staff.query.filter_by(EmployeeID = data['id']).first()
+        staff.OfficeID = data['OfficeID']
+        staff.DepartmentID = data['DepartmentID']
+    try:
         db.session.commit()
         return True
     except:

@@ -43,7 +43,6 @@ class Person(db.Model):
 class Employee(db.Model):
     __table__ = db.Model.metadata.tables['Employee']
     def serialize(self):
-        
         return {
             'PersonID':self.PersonID,
             'EmployeeID': self.EmployeeID,
