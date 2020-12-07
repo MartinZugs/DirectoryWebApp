@@ -262,10 +262,11 @@ function changeModalCallback(details, model) {
     //console.log(details)
     //remove contents from modals
     $('#addModalContentForm').empty();
-
+    $('#editModalContentForm').empty();
 
     //populate modals with the details
     addForm(details, model, 'addModalContent');
+    addForm(details, model, 'editModalContent');
 }
 
 function getModelDetails(model, callback) {
@@ -280,14 +281,15 @@ function getModelDetails(model, callback) {
 }
 
 
-
+var currentTableEntries;
 
 function getModel(model){
     $.ajax({
         method: 'GET',
         url: "/admin/manage",
         data: {'model':model},
-        success: function(response) {
+        success: function (response) {
+            currentTableEntries = response;
             console.log(response);
             fillTable(response);
         }
@@ -306,7 +308,7 @@ function fillTable(array) {
                 array[i].Email + '</td><td>' + array[i].UserType + '</td><td>' + array[i].PhoneNum + '</td><td>' +
                 convertToBoolean(array[i].Manager) + '</td><td>'
                 + '<a href="#editModal" class="edit" data-toggle="modal"><i class="material-icons"' +
-                'data-toggle="tooltip" title="Edit">&#xE254;</i></a>' +
+                'data-toggle="tooltip" title="Edit" onclick="editRow(this);">&#xE254;</i></a>' +
                 '<a class="delete" ><i class="material-icons"' +
                 'data-toggle="tooltip" title="Delete" onclick="deleteRow(this);">&#xE872;</i></a>' + '</td></tr>';
 
@@ -367,6 +369,65 @@ function addFormSubmit(e) {
     $('#addModal').modal("hide");
 }
 
+function editFormSubmit(e) {
+    e.preventDefault();
+    let model = $('#editModalContentForm').attr('model');
+    let sendData = true;
+    let errorMessage = '';
+    console.log(model);
+    data = { 'model': model }
+    $.each($('#editModalContentForm').serializeArray(), function (i, field) {
+        data[field.name] = field.value;
+    });
+    if (model == "All") {
+        if (data['Manager'] == "on") {
+            data['Manager'] = true;
+        } else {
+            data['Manager'] = false;
+        }
+    } else if (model == "Employee") {
+        if (data['ManagerID'] == data['PersonID']) {
+            sendData = false;
+            errorMessage = "Cant be your own Manager";
+        }
+    } else if (model == "Prereqs") {
+        if (data['PrereqID'] == data['MainCourseID']) {
+            sendData = false;
+            errorMessage = "A Course cant be its own Prereq";
+        }
+    }
+    //switch (model) {
+    //    case "All":
+    //        $
+    //        data['email'] = model 
+    //        break;
+    //}
+    if (sendData) {
+        sendEditFormData(data);
+    }
+
+    $("input[type=text], textarea").val("");
+    $('#editModal').modal("hide");
+}
+
+function sendEditFormData(data) {
+    console.log(data)
+    $.ajax({
+        method: 'POST',
+        contentType: 'application/json',
+        url: "/admin/edit",
+        dataType: 'json',
+        data: JSON.stringify(data),
+        success: function (response) {
+
+            console.log(response)
+            addRow(response.data)
+        },
+        error: function (err) { console.log(err) }
+    })
+}
+
+
 function sendAddFormData(data) {
     console.log(data)
     $.ajax({
@@ -375,10 +436,10 @@ function sendAddFormData(data) {
         url: "/admin/manage",
         dataType: 'json',
         data: JSON.stringify(data),
-        success: function (response,returnedData) {
-            console.log(response);
-            console.log(returnedData);
-            
+        success: function (response) {
+
+            console.log(response)
+            addRow(response.data)
         },
         error: function (err) { console.log(err) } 
     })
@@ -409,13 +470,19 @@ function deleteForm(event) {
     if (itemToDelete == undefined) {
         
         var checkbox = checkedItems;
-        if (checkboc.length > 0) {
+        if (checkbox.length > 0) {
+            var rows = [];
+            var data = []
             console.log(checkbox);
             checkbox.each(function () {
                 if (this.checked) {
-                    this.parentNode
+
+                    rows.push(this.parentNode.parentNode.rowIndex);
+                    data.push({ "id": this.parentNode.parentNode.getAttribute("elementID"), "model": model });
                 }
             })
+            console.log(data, rows)
+            deletePost(data, rows, deleteRowCallback);
         }
         
     } else {
@@ -429,9 +496,24 @@ function deleteForm(event) {
     $('#deleteModal').modal('hide');
 }
 
+
+
 function deleteRowCallback(rows) {
-    for (let row in rows) {
-        document.getElementById("Table").deleteRow(row);
+    let offset = 0;
+    let previousRow = null;
+    for (let row of rows) {
+        console.log(row);
+        if (previousRow == null) {
+            document.getElementById("table").deleteRow(row);
+            previousRow = row;
+        } else {
+            if (previousRow > row) {
+                document.getElementById("table").deleteRow(row);
+            } else {
+                document.getElementById("table").deleteRow(row-1);
+            }
+        }
+        
     }
     
 }
@@ -445,11 +527,52 @@ function deleteRow(r) {
     $('#deleteModal').modal('show');
 }
 
+function editRow(r) {
+    let rowNode = r.parentNode.parentNode.parentNode;
+    console.log(rowNode.getAttribute("elementID"));
+    for (var item of currentTableEntries) {
+        if (rowNode.getAttribute("elementID") == getEntryID(item)) {
+            console.log(item);
+            populate("#editModalContentForm", item);
+        }
+    }
+    $('#editModal').modal('show');
+}
+
+function getEntryID(entry) {
+    var id;
+    switch (entry.model) {
+        case "All":
+            id = entry.PersonID;
+            break;
+        default:
+            break;
+    }
+    return id;
+}
+
+//found on https://stackoverflow.com/questions/7298364/using-jquery-and-json-to-populate-forms
+function populate(frm, data) {
+    $.each(data, function (key, value) {
+        var ctrl = $('[name=' + key + ']', frm);
+        switch (ctrl.prop("type")) {
+            case "checkbox":
+                ctrl.each(function () {
+                    if ($(this).attr('name') == key) $(this).attr("checked", convertToBoolean(value));
+                });
+                break;
+            default:
+                ctrl.val(value);
+        }
+    });
+}
+
+
 function cancelDelete() {
     itemToDelete = undefined;
 }
 
-function deletePost(data, row, callback) {
+function deletePost(data, rows, callback) {
     $.ajax({
         method: 'POST',
         contentType: 'application/json',
@@ -458,7 +581,33 @@ function deletePost(data, row, callback) {
         data: JSON.stringify(data),
         success: function (response) {
             console.log(response);
-
+            callback(rows);
         }
     })
+}
+
+
+function addRow(rowData) {
+    console.log(rowData);
+    var row = document.createElement('tr');
+
+    switch (rowData['model']) {
+        case "All":
+            row.setAttribute("elementid", rowData['PersonID']);
+
+            break;
+        default:
+            break;
+    }
+        
+    //html += '<tr elementid=' + array[i].PersonID + '><td>' +
+    //    '<input type="checkbox" id="checkbox' + i + '" name="options[]" value="1">' +
+    //    '<label for="checkbox1"></label>' + '</td><td>' + array[i].FName + ' ' + array[i].LName + '</td><td>' +
+    //    array[i].Email + '</td><td>' + array[i].UserType + '</td><td>' + array[i].PhoneNum + '</td><td>' +
+    //    convertToBoolean(array[i].Manager) + '</td><td>'
+    //    + '<a href="#editModal" class="edit" data-toggle="modal"><i class="material-icons"' +
+    //    'data-toggle="tooltip" title="Edit">&#xE254;</i></a>' +
+    //    '<a class="delete" ><i class="material-icons"' +
+    //    'data-toggle="tooltip" title="Delete" onclick="deleteRow(this);">&#xE872;</i></a>' + '</td></tr>';
+
 }
