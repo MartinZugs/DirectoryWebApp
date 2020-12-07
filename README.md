@@ -69,3 +69,9 @@ Here is what has been added:
 - delete is fully functional just needs to be repeated for rest of tables (currently only person for proof of working)
 - able to delete multiple entries at once
 - creating new way of inputing data into the table because current way only partially works
+- edit is almost done
+- update is complete just need to pass right ids
+- soo turns out some of the inserts were broken, some of our tables were missing auto increment and the others had an issue where 
+sqlalchemy will try to create both student and undergrad when inserting undergrad because StudentID is both foreign key and primary key
+sqlalchemy.exc.OperationalError: (MySQLdb._exceptions.OperationalError) (1048, "Column 'PersonID' cannot be null")
+[SQL: INSERT INTO `Student` (`StudentID`, `PersonID`, `EnrollmentStatus`, `CreditHoursTotal`, `StudentType`) VALUES (%s, %s, %s, %s, %s)]
