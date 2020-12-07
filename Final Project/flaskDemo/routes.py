@@ -282,12 +282,17 @@ def manage():
         result = insertItem(data)
         
         if result:
-            return "Added "+ data['model']
+            return {"string":"Added "+ data['model'], "result": "success"}
         else:
             flash('Failed to add ' + data['model'], 'danger')
             return ""
         return "test"
 
+@app.route("/admin/delete", methods=['POST'])
+def deleteItem():
+    data = request.get_json()
+    result = deleteItemQuery(data)
+    return {"string":"itWorked", "result": "success"}
 @app.route("/admin/modelDetails", methods=['GET'])
 def getModelDetails():
     if request.method == 'GET':
@@ -868,4 +873,16 @@ def insertItem(data):
     except:
         return False
         
+    
+def deleteItemQuery(data):
+    print(data)
+    for item in data:
+        if (item['model'] == 'Person'):
+            itemToDelete = Person.query.get_or_404(item['id'])
+    try:
+        db.session.delete(itemToDelete)
+        db.session.commit()
+        return True
+    except:
+        return False
     
