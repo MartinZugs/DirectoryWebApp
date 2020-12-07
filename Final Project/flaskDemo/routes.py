@@ -275,18 +275,27 @@ def manage():
         
         data = getModel(model)
         # results =  []
-       
+        for item in data:
+           item['model'] = model
         return jsonify(data)
     else:
         data = request.get_json()
         result = insertItem(data)
         
-        if result:
-            return {"string":"Added "+ data['model'], "result": "success"}
-        else:
+        if not result:
             flash('Failed to add ' + data['model'], 'danger')
             return ""
+        else: 
+            result['model'] = data['model']
+            print(result)
+            return {"data": result, "result": "success"}
         return "test"
+
+@app.route("/admin/edit", methods=['POST'])
+def adminEdit():
+    data = request.get_json()
+    print(data)
+    return {"data": None, "result": "success"}
 
 @app.route("/admin/delete", methods=['POST'])
 def deleteItem():
@@ -868,8 +877,9 @@ def insertItem(data):
         item = Staff(EmployeeID = data['EmployeeID'], OfficeID = ['OfficeID'], DepartmentID = ['DepartmentID'])
     try:
         db.session.add(item)
+        db.session.flush()
         db.session.commit()
-        return True
+        return item.serialize()
     except:
         return False
         
@@ -879,8 +889,10 @@ def deleteItemQuery(data):
     for item in data:
         if (item['model'] == 'Person'):
             itemToDelete = Person.query.get_or_404(item['id'])
+            db.session.delete(itemToDelete)
+            
     try:
-        db.session.delete(itemToDelete)
+        
         db.session.commit()
         return True
     except:
