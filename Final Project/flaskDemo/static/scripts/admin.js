@@ -136,7 +136,7 @@ function createOption(detail, option) {
             opt.text  = option.CampusName
             break;
         case "BuildingID":
-            opt.value = option.BuilldingID;
+            opt.value = option.BuildingID;
             opt.text = option.BuildingName;
             break;
         case "EmployeeID":
@@ -163,7 +163,7 @@ function createOption(detail, option) {
             break;
         case "ProfID":
             if (option.EmployeeID == null) {
-                opt.value = '';
+                opt.value = null;
                 opt.text = "None";
             } else {
                 opt.value = option.EmployeeID;
@@ -275,6 +275,7 @@ function getModelDetails(model, callback) {
         url: "/admin/modelDetails",
         data: { 'model': model },
         success: function (response) {
+            //console.log(response)
             callback(response, model)
         }
     })
@@ -290,7 +291,7 @@ function getModel(model){
         data: {'model':model},
         success: function (response) {
             currentTableEntries = response;
-            console.log(response);
+            //console.log(response);
             fillTable(response);
         }
     })
@@ -302,7 +303,7 @@ function fillTable(array) {
         $("#amountOfEntries").text(array.length);
         var html = '';
         for (var i = 0; i < array.length; i++) {
-            html += '<tr elementid=' + array[i].PersonID + '><td>' +
+            html += '<tr elementid="' + array[i].MainCourseID + '" elementid2=' + array[i].PrereqID + '><td>' +
                 '<input type="checkbox" id="checkbox'+i+'" name="options[]" value="1">' +
                 '<label for="checkbox1"></label>' + '</td><td>' + array[i].FName + ' ' + array[i].LName + '</td><td>' +
                 array[i].Email + '</td><td>' + array[i].UserType + '</td><td>' + array[i].PhoneNum + '</td><td>' +
@@ -336,7 +337,11 @@ function addFormSubmit(e) {
     console.log(model);
     data = { 'model': model }
     $.each($('#addModalContentForm').serializeArray(), function (i, field) {
+       
+        
         data[field.name] = field.value;
+        
+        
     });
     if (model == "All") {
         if (data['Manager'] == "on") {
@@ -374,8 +379,8 @@ function editFormSubmit(e) {
     let model = $('#editModalContentForm').attr('model');
     let sendData = true;
     let errorMessage = '';
-    console.log(model);
-    data = { 'model': model }
+    //console.log(model);
+    data = { 'model': model, "id": $('#editModalContentForm').attr('elementid')}
     $.each($('#editModalContentForm').serializeArray(), function (i, field) {
         data[field.name] = field.value;
     });
@@ -410,8 +415,25 @@ function editFormSubmit(e) {
     $('#editModal').modal("hide");
 }
 
+function getKeys(model,item) {
+    let id;
+    let id2;
+    console.log(model)
+    if (item.hasAttribute('elementid2')) {
+        id = item.getAttribute('elementid')
+        id2 = item.getAttribute('elementid2')
+        return [id, id2]
+    } else {
+        id = item.getAttribute('elementid');
+        return id
+    }
+    
+           
+   
+}
+
 function sendEditFormData(data) {
-    console.log(data)
+    //console.log(data)
     $.ajax({
         method: 'POST',
         contentType: 'application/json',
@@ -439,7 +461,7 @@ function sendAddFormData(data) {
         success: function (response) {
 
             console.log(response)
-            addRow(response.data)
+            //addRow(response.data)
         },
         error: function (err) { console.log(err) } 
     })
@@ -478,7 +500,7 @@ function deleteForm(event) {
                 if (this.checked) {
 
                     rows.push(this.parentNode.parentNode.rowIndex);
-                    data.push({ "id": this.parentNode.parentNode.getAttribute("elementID"), "model": model });
+                    data.push({ "id": getKeys(model, this.parentNode.parentNode), "model": model });
                 }
             })
             console.log(data, rows)
@@ -487,7 +509,7 @@ function deleteForm(event) {
         
     } else {
         let rows = [itemToDelete.rowIndex];
-        let data = [{"id": itemToDelete.getAttribute("elementID"), "model":model }];
+        let data = [{ "id": getKeys(model, itemToDelete), "model": model }];
 
         console.log(data);
         deletePost(data, rows, deleteRowCallback);
@@ -529,15 +551,43 @@ function deleteRow(r) {
 
 function editRow(r) {
     let rowNode = r.parentNode.parentNode.parentNode;
-    console.log(rowNode.getAttribute("elementID"));
+    let id;
+    if (rowNode.hasAttribute("elementID2")) {
+        id = (rowNode.getAttribute("elementID"), rowNode.getAttribute("elementID2"));
+    } else {
+        id = rowNode.getAttribute("elementID")
+    }
+    
+    //console.log(rowNode.getAttribute("elementID"));
     for (var item of currentTableEntries) {
-        if (rowNode.getAttribute("elementID") == getEntryID(item)) {
-            console.log(item);
+        if (id == getEntryID(item)) {
+            //console.log(item);
+            addIDToForm(item);
+            //$("#editModalContentForm").attr("elementID", id);
             populate("#editModalContentForm", item);
         }
     }
     $('#editModal').modal('show');
 }
+
+function addIDToForm(item) {
+    switch (item.model) {
+        case "All":
+            id = item.PersonID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Prereqs":
+            id = item.MainCourseID;
+            $("#editModalContentForm").attr("elementID", id);
+            id2 = item.PrereqID;
+            $("#editModalContentForm").attr("elementID2", id2);
+            break;
+        default:
+            break;
+    }
+}
+
+
 
 function getEntryID(entry) {
     var id;
@@ -545,6 +595,8 @@ function getEntryID(entry) {
         case "All":
             id = entry.PersonID;
             break;
+        case "Prereqs":
+            id = (entry.MainCourseID, entry.PrereqID)
         default:
             break;
     }
@@ -594,7 +646,6 @@ function addRow(rowData) {
     switch (rowData['model']) {
         case "All":
             row.setAttribute("elementid", rowData['PersonID']);
-
             break;
         default:
             break;
