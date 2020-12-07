@@ -419,7 +419,8 @@ def deletecontact(PersonID):
 
     if current_contact == None:
 
-        pass
+        flash('You are not allowed to delete this entry', 'danger')
+        return redirect(url_for('home'))
 
     # If you are logged in not as a manager, process as a normal account. This means if you are a manager you are allowed by default
     elif current_contact.Manager == 0:
@@ -453,7 +454,8 @@ def updatecontact(PersonID):
 
     if current_contact == None:
 
-        pass
+        flash('You are not allowed to delete this entry', 'danger')
+        return redirect(url_for('home'))
 
     # If you are logged in not as a manager, process as a normal account. This means if you are a manager you are allowed by default
     elif current_contact.Manager == 0:
