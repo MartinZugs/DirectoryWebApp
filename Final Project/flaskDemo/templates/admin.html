@@ -44,6 +44,7 @@
 			<script>
 				$(document).ready(function () {
 					$('.dropdown-toggle').dropdown();
+					changeManagmentContent('All');
 				});
 			</script>
 		</div>
@@ -60,7 +61,7 @@
 					<div class="col-sm-6">
 						<a href="#addModal" id="addmodalbutton" class="btn btn-success" data-toggle="modal"><i
 								class="material-icons">&#xE147;</i> <span>Add New <b id="addTitle">Employee</b></span></a>
-						<a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal"><i
+						<a href="#deleteModal" class="btn btn-danger" data-toggle="modal"><i
 								class="material-icons">&#xE15C;</i> <span>Delete</span></a>
 					</div>
 				</div>
@@ -69,10 +70,10 @@
 				<thead>
 					<tr>
 						<th>
-							<span class="custom-checkbox">
-								<input type="checkbox" id="selectAll">
-								<label for="selectAll"></label>
-							</span>
+							
+							<input type="checkbox" id="selectAll" onclick="selectAll()">
+							<label for="selectAll"></label>
+							
 						</th>
 						<th>Name</th>
 						<th>Email</th>
@@ -163,12 +164,12 @@
 		</div>
 </div>
 <!-- Edit Modal HTML -->
-<div id="editEmployeeModal" class="modal fade">
+<div id="editModal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<form id="tester">
 				<div class="modal-header">
-					<h4 class="modal-title">Edit Employee</h4>
+					<h4 class="modal-title">Edit <b id="modaleditItemTitle">Employee</b></h4>
 					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 				</div>
 				<div class="modal-body" id="editModalBody">
@@ -198,12 +199,12 @@
 	</div>
 </div>
 <!-- Delete Modal HTML -->
-<div id="deleteEmployeeModal" class="modal fade">
+<div id="deleteModal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			<form>
+			<form id="deleteModalForm" onsubmit="deleteForm(event);">
 				<div class="modal-header">
-					<h4 class="modal-title">Delete Employee</h4>
+					<h4 class="modal-title">Delete <b id="modaldeleteItemTitle">Employee</b></h4>
 					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 				</div>
 				<div class="modal-body">
@@ -211,14 +212,14 @@
 					<p class="text-warning"><small>This action cannot be undone.</small></p>
 				</div>
 				<div class="modal-footer">
-					<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+					<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel" onclick="cancelDelete()">
 					<input type="submit" class="btn btn-danger" value="Delete">
 				</div>
 			</form>
 		</div>
 	</div>
 </div>
-<script>
+<!--<script>
 	$(document).ready(function () {
 		// Activate tooltip
 		$('[data-toggle="tooltip"]').tooltip();
@@ -243,5 +244,5 @@
 			}
 		});
 	});
-</script>
+</script>-->
 {% endblock content %}
