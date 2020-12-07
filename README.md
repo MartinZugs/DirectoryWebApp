@@ -60,3 +60,12 @@ Here is what has been added:
 - Join subquery for both sql and sqlalchemy
 - add methods added to the routes
 - Finished the add modal which is fully functional
+
+12/6 (PJ)
+- decided to go ham on everything
+- fixed error with add by using a flush to get back id of pushed item
+- fixed edit modal
+- edit modal is now autopoulated from data
+- delete is fully functional just needs to be repeated for rest of tables (currently only person for proof of working)
+- able to delete multiple entries at once
+- creating new way of inputing data into the table because current way only partially works
