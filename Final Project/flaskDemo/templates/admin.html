@@ -167,12 +167,16 @@
 <div id="editModal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			<form id="tester">
-				<div class="modal-header">
-					<h4 class="modal-title">Edit <b id="modaleditItemTitle">Employee</b></h4>
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				</div>
-				<div class="modal-body" id="editModalBody">
+			<div class="modal-header">
+				<h4 class="modal-title">Edit <b id="modaleditItemTitle">Employee</b></h4>
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			</div>
+			<div id="editModalContent">
+				<form id="editModalContentForm" onsubmit="editFormSubmit(event);">
+
+				</form>
+			</div>
+				<!--<div class="modal-body" id="editModalBody">
 					<div class="form-group" id="#test">
 						<label>Name</label>
 						<input type="text" class="form-control" required>
@@ -193,8 +197,8 @@
 				<div class="modal-footer">
 					<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
 					<input type="submit" class="btn btn-info" value="Save">
-				</div>
-			</form>
+				</div>-->
+			
 		</div>
 	</div>
 </div>
