@@ -29,10 +29,14 @@ function changeModalOptions(model) {
     if (model == 'All') {
         $("#addTitle").text('Person');
         $("#modaladdItemTitle").text('Person');
+        $("#modaldeleteItemTitle").text('Person');
+        $("#modaleditItemTitle").text('Person');
         getModelDetails(model, changeModalCallback);
     } else {
         $("#addTitle").text(model);
         $('#modaladdItemTitle').text(model);
+        $("#modaldeleteItemTitle").text(model);
+        $("#modaleditItemTitle").text(model);
         getModelDetails(model, changeModalCallback);
     }
     
@@ -296,18 +300,18 @@ function fillTable(array) {
         $("#amountOfEntries").text(array.length);
         var html = '';
         for (var i = 0; i < array.length; i++) {
-            html += '<tr><td>' + '<span class="custom-checkbox">' +
-                '<input type="checkbox" id="checkbox1" name="options[]" value="1">' +
-                '<label for="checkbox1"></label> </span>' + '</td><td>' + array[i].FName + ' ' + array[i].LName + '</td><td>' +
+            html += '<tr elementid=' + array[i].PersonID + '><td>' +
+                '<input type="checkbox" id="checkbox'+i+'" name="options[]" value="1">' +
+                '<label for="checkbox1"></label>' + '</td><td>' + array[i].FName + ' ' + array[i].LName + '</td><td>' +
                 array[i].Email + '</td><td>' + array[i].UserType + '</td><td>' + array[i].PhoneNum + '</td><td>' +
                 convertToBoolean(array[i].Manager) + '</td><td>'
-                + '<a href="#editEmployeeModal" class="edit" data-toggle="modal"><i class="material-icons"' +
+                + '<a href="#editModal" class="edit" data-toggle="modal"><i class="material-icons"' +
                 'data-toggle="tooltip" title="Edit">&#xE254;</i></a>' +
-                '<a href="#deleteEmployeeModal" class="delete" data-toggle="modal"><i class="material-icons"' +
-                'data-toggle="tooltip" title="Delete">&#xE872;</i></a>' + '</td></tr>';
+                '<a class="delete" ><i class="material-icons"' +
+                'data-toggle="tooltip" title="Delete" onclick="deleteRow(this);">&#xE872;</i></a>' + '</td></tr>';
 
         }
-        $('#table tr').first().after(html);
+        $('#table tbody').append(html);
     }
     
 }
@@ -371,10 +375,90 @@ function sendAddFormData(data) {
         url: "/admin/manage",
         dataType: 'json',
         data: JSON.stringify(data),
-        success: function (response) {
+        success: function (response,returnedData) {
             console.log(response);
+            console.log(returnedData);
             
-        }
+        },
+        error: function (err) { console.log(err) } 
     })
 }
 
+function selectAll() {
+    var checkbox = $('table tbody input[type="checkbox"]');
+    this.checked = !this.checked;
+    console.log(checkbox)
+    if (this.checked) {
+        checkbox.each(function () {
+            this.checked = true;
+        });
+    } else {
+        checkbox.each(function () {
+            this.checked = false;
+        });
+    }
+}
+
+
+
+function deleteForm(event) {
+    event.preventDefault();
+    checkedItems = $('table tbody input[type="checkbox"]:checked');
+    console.log(checkedItems);
+    var model = $('#modaldeleteItemTitle').html();
+    if (itemToDelete == undefined) {
+        
+        var checkbox = checkedItems;
+        if (checkboc.length > 0) {
+            console.log(checkbox);
+            checkbox.each(function () {
+                if (this.checked) {
+                    this.parentNode
+                }
+            })
+        }
+        
+    } else {
+        let rows = [itemToDelete.rowIndex];
+        let data = [{"id": itemToDelete.getAttribute("elementID"), "model":model }];
+
+        console.log(data);
+        deletePost(data, rows, deleteRowCallback);
+    }
+    itemToDelete = undefined;
+    $('#deleteModal').modal('hide');
+}
+
+function deleteRowCallback(rows) {
+    for (let row in rows) {
+        document.getElementById("Table").deleteRow(row);
+    }
+    
+}
+
+var itemToDelete = undefined;
+
+function deleteRow(r) {
+    itemToDelete = r.parentNode.parentNode.parentNode;
+
+    console.log(itemToDelete)
+    $('#deleteModal').modal('show');
+}
+
+function cancelDelete() {
+    itemToDelete = undefined;
+}
+
+function deletePost(data, row, callback) {
+    $.ajax({
+        method: 'POST',
+        contentType: 'application/json',
+        url: "/admin/delete",
+        dataType: 'json',
+        data: JSON.stringify(data),
+        success: function (response) {
+            console.log(response);
+
+        }
+    })
+}
