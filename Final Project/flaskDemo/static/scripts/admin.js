@@ -6,6 +6,14 @@ function changeManagmentContent(model) {
     
     changeModalOptions(model);
 
+    changeTableColumns(model);
+
+    if (model == "Employed Students") {
+        $("#delBtn").hide();
+    } else {
+        $("#delBtn").show();
+    }
+
     var table = document.getElementById('table');
     var rowCount = table.rows.length;
     if (rowCount > 1) {
@@ -19,10 +27,9 @@ function changeManagmentContent(model) {
     getModel(model);
 }
 
-
-
-
 }
+
+
 
 function changeModalOptions(model) {
     //edit addmodal
@@ -203,35 +210,42 @@ function addForm(details, model, modalName) {
     f.setAttribute('model', model);
     //console.log(f);
     //f.setAttribute('method', "post");
-    
-    
-    var body = document.createElement('div');
-    body.className = "modal-body";
-    f.append(body);
-    //f.id = 
-    //create input element
-    for (let key in details) {
-        var div = addInput(key, details[key]);
-        body.appendChild(div);
+    if (model == 'Employed Students') {
+        var body = document.createElement('div');
+        body.className = "modal-body";
+        body.innerHTML = "Please add by adding student and employee with same personID in their respective Tables"
+        f.append(body);
+    } else {
+        var body = document.createElement('div');
+        body.className = "modal-body";
+        f.append(body);
+        //f.id = 
+        //create input element
+        for (let key in details) {
+            var div = addInput(key, details[key]);
+            body.appendChild(div);
+        }
+
+        var footer = document.createElement('div');
+        footer.className = "modal-footer";
+
+        //create a button
+        var s = document.createElement("input");
+        s.type = "submit";
+        s.value = "Save";
+        s.className = "btn btn-primary";
+
+        var close = document.createElement("button");
+        close.className = 'btn btn-secondary';
+        close.setAttribute("data-dismiss", "modal");
+        close.innerHTML = "Close";
+        footer.append(close);
+        footer.append(s);
+
+        f.append(footer);
     }
-        
-    var footer = document.createElement('div');
-    footer.className = "modal-footer";
     
-    //create a button
-    var s = document.createElement("input");
-    s.type = "submit";
-    s.value = "Save";
-    s.className = "btn btn-primary";
-
-    var close = document.createElement("button");
-    close.className = 'btn btn-secondary';
-    close.setAttribute("data-dismiss", "modal");
-    close.innerHTML = "Close";
-    footer.append(close);
-    footer.append(s);
-
-    f.append(footer);
+    
     // add all elements to the form
     //f.appendChild(div);
     //f.appendChild(s);
@@ -821,7 +835,7 @@ function addRow(rowData) {
         let userType = document.createElement('td');
         userType.innerHTML = rowData['UserType'];
         row.append(userType);
-        
+
         let manager = document.createElement('td');
         manager.innerHTML = convertToBoolean(rowData['Manager']);
         row.append(manager);
@@ -859,7 +873,7 @@ function addRow(rowData) {
         let employeeType = document.createElement('td');
         employeeType.innerHTML = rowData['EmployeeType'];
         row.append(employeeType);
-        
+
         let managerID = document.createElement('td');
         if (rowData['ManagerID'] == null) {
             managerID.innerHTML = "None";
@@ -882,7 +896,7 @@ function addRow(rowData) {
         if (rowData['OfficeID'] == null) {
             officeID.innerHTML = "None";
         } else {
-            officeID.innerHTML =  rowData['BuildingName']+' '+rowData['OfficeID'];
+            officeID.innerHTML = rowData['BuildingName'] + ' ' + rowData['OfficeID'];
         }
         row.append(officeID);
         let departmentID = document.createElement('td');
@@ -899,7 +913,7 @@ function addRow(rowData) {
         let phoneNum = document.createElement('td');
         phoneNum.innerHTML = rowData['PhoneNum'];
         row.append(phoneNum);
-        
+
         let enrollmentStatus = document.createElement('td');
         enrollmentStatus.innerHTML = rowData['EnrollmentStatus'];
         row.append(enrollmentStatus);
@@ -945,12 +959,12 @@ function addRow(rowData) {
         row.append(phoneNum);
 
         let courseDescription = document.createElement('td');
-        courseDescription.innerHTML = rowData['CourseDescription'];
+        courseDescription.innerHTML = rowData['CourseName'];
         row.append(courseDescription);
         let credits = document.createElement('td');
         credits.innerHTML = rowData['Credits'];
         row.append(credits);
-        
+
     } else if (rowData['model'] == "Registered_For") {
         row.setAttribute("elementid", rowData['StudentID']);
         row.setAttribute("elementid2", rowData['CourseID']);
@@ -965,7 +979,7 @@ function addRow(rowData) {
         row.append(phoneNum);
 
         let courseDescription = document.createElement('td');
-        courseDescription.innerHTML = rowData['CourseDescription'];
+        courseDescription.innerHTML = rowData['CourseName'];
         row.append(courseDescription);
         let credits = document.createElement('td');
         credits.innerHTML = rowData['Credits'];
@@ -985,7 +999,7 @@ function addRow(rowData) {
         row.append(phoneNum);
 
         let courseDescription = document.createElement('td');
-        courseDescription.innerHTML = rowData['CourseDescription'];
+        courseDescription.innerHTML = rowData['CourseName'];
         row.append(courseDescription);
         let credits = document.createElement('td');
         credits.innerHTML = rowData['Credits'];
@@ -1073,7 +1087,7 @@ function addRow(rowData) {
         let preName = document.createElement('td');
         preName.innerHTML = rowData['preName'];
         row.append(preName);
-        
+
     } else if (rowData['model'] == "Alumni") {
         row.setAttribute("elementid", rowData['StudentID']);
         let name = document.createElement('td');
@@ -1086,8 +1100,8 @@ function addRow(rowData) {
         phoneNum.innerHTML = rowData['PhoneNum'];
         row.append(phoneNum);
         let graduationDate = document.createElement('td');
-        
-        graduationDate.innerHTML = "None";
+
+
         graduationDate.innerHTML = rowData['GraduationDate'];
         row.append(graduationDate);
         let finalSemester = document.createElement('td');
@@ -1131,6 +1145,32 @@ function addRow(rowData) {
         let departmentID = document.createElement('td');
         departmentID.innerHTML = rowData['DepartmentName'];
         row.append(departmentID);
+    } else if (rowData['model'] == "User") {
+        row.setAttribute("elementid", rowData['id']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        let username = document.createElement('td');
+        username.innerHTML = rowData['username'];
+        row.append(username);
+    } else if (rowData['model'] == "Employed Students") {
+        row.setAttribute("elementid", rowData['id']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        
     }
          
     
@@ -1138,18 +1178,374 @@ function addRow(rowData) {
     var actionsTd = document.createElement("td");
     
     actionsTd.id = "action" + counter;
+
     let html = jQuery.parseHTML('<a href="#editModal" class="edit" data-toggle="modal"><i class="material-icons"' +
         'data-toggle="tooltip" title="Edit" onclick="editRow(this);">&#xE254;</i></a>');
         
     let html2 =   jQuery.parseHTML('<a class="delete" ><i class="material-icons"' +
         'data-toggle="tooltip" title="Delete" onclick="deleteRow(this);">&#xE872;</i></a>');
-    
-    row.append(actionsTd);
-    
-    $('#table tbody').append(row);
-    $('#action' + counter).append(html);
-    $('#action' + counter).append(html2);
-    counter += 1;
-  
+    if (rowData['model'] == "Employed Students") {
+        $('#table tbody').append(row);
+    } else {
+        row.append(actionsTd);
 
+        $('#table tbody').append(row);
+        $('#action' + counter).append(html);
+        $('#action' + counter).append(html2);
+    }
+    
+    counter += 1;
+}
+
+function changeTableColumns(model) {
+    $('#table thead').empty();
+
+    var row = document.createElement('tr');
+    $('#table thead').append(row);
+    
+    let html = jQuery.parseHTML('<th>' +'<input type = "checkbox" id = "selectAll" onclick = "selectAll()" >' +
+        '<label for="selectAll"></label>' + '</th >');
+    $('#table thead tr').append(html);
+    //var selectTh = document.createElement('th');
+    //var select = document.createElement('input');
+    //select.type = 'checkbox';
+    //select.id = 'selectAll';
+    //select.onclick = selectAll;
+    //selectTh.append(select);
+    //row.append(selectTh);
+    console.log(model);
+    if (model == "All") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let userType = document.createElement('th');
+        userType.innerHTML = "User Type";
+        $('#table thead tr').append(userType);
+        let manager = document.createElement('th');
+        manager.innerHTML = "Manager";
+        $('#table thead tr').append(manager);
+    } else if (model == "Student") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let studentType = document.createElement('th');
+        studentType.innerHTML = "Student Type";
+        $('#table thead tr').append(studentType);
+        
+        let enrollmentStatus = document.createElement('th');
+        enrollmentStatus.innerHTML = "Enrollment Status";
+        $('#table thead tr').append(enrollmentStatus);
+        let creditHoursTotal = document.createElement('th');
+        creditHoursTotal.innerHTML = "Credit Hours Total";
+        $('#table thead tr').append(creditHoursTotal);
+
+    } else if (model == "Employee") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let employeeType = document.createElement('th');
+        employeeType.innerHTML = "Employee Type";
+        $('#table thead tr').append(employeeType);
+
+        let managerID = document.createElement('th');
+        managerID.innerHTML = "ManagerID";
+        $('#table thead tr').append(managerID);
+        
+
+    } else if (model == "Faculty") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let officeID = document.createElement('th');
+        officeID.innerHTML = "Office";
+        $('#table thead tr').append(officeID);
+
+        let departmentID = document.createElement('th');
+        departmentID.innerHTML = "Department";
+        $('#table thead tr').append(departmentID);
+
+
+    } else if (model == "Undergrad") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let enrollmentStatus = document.createElement('th');
+        enrollmentStatus.innerHTML = "Enrollment Status";
+        $('#table thead tr').append(enrollmentStatus);
+
+        let creditHoursTotal = document.createElement('th');
+        creditHoursTotal.innerHTML = "Credit Hours Total";
+        $('#table thead tr').append(creditHoursTotal);
+
+
+    } else if (model == "Graduate") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let enrollmentStatus = document.createElement('th');
+        enrollmentStatus.innerHTML = "Enrollment Status";
+        $('#table thead tr').append(enrollmentStatus);
+
+        let uGCompDate = document.createElement('th');
+        uGCompDate.innerHTML = "UGCompDate";
+        $('#table thead tr').append(uGCompDate);
+        let graduateType = document.createElement('th');
+        graduateType.innerHTML = "Graduate Type";
+        $('#table thead tr').append(graduateType);
+
+    } else if (model == "Enrolled_In") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        
+
+        let courseDescription = document.createElement('th');
+        courseDescription.innerHTML = "Course Name";
+        $('#table thead tr').append(courseDescription);
+        let credits = document.createElement('th');
+        credits.innerHTML = "Credits";
+        $('#table thead tr').append(credits);
+
+    } else if (model == "Registered_For") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+
+
+        let courseDescription = document.createElement('th');
+        courseDescription.innerHTML = "Course Name";
+        $('#table thead tr').append(courseDescription);
+        let credits = document.createElement('th');
+        credits.innerHTML = "Credits";
+        $('#table thead tr').append(credits);
+
+    } else if (model == "Teaching_Assistant") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+
+
+        let courseDescription = document.createElement('th');
+        courseDescription.innerHTML = "Course Name";
+        $('#table thead tr').append(courseDescription);
+        let credits = document.createElement('th');
+        credits.innerHTML = "Credits";
+        $('#table thead tr').append(credits);
+
+    } else if (model == "Research_Assistant") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+
+
+        let researchFocus = document.createElement('th');
+        researchFocus.innerHTML = "Research Focus ";
+        $('#table thead tr').append(researchFocus);
+    } else if (model == "Campus") {
+        let name = document.createElement('th');
+        name.innerHTML = "Campus Name";
+        $('#table thead tr').append(name);
+        
+    } else if (model == "Building") {
+        let name = document.createElement('th');
+        name.innerHTML = "Building Name";
+        $('#table thead tr').append(name);
+        let buildingAddress = document.createElement('th');
+        buildingAddress.innerHTML = "Address";
+        $('#table thead tr').append(buildingAddress);
+        let campusName = document.createElement('th');
+        campusName.innerHTML = "Campus Name";
+        $('#table thead tr').append(campusName);
+    } else if (model == "Department") {
+        let name = document.createElement('th');
+        name.innerHTML = "Department Name";
+        $('#table thead tr').append(name);
+        let buildingName = document.createElement('th');
+        buildingName.innerHTML = "Building Name";
+        $('#table thead tr').append(buildingName);
+        
+    } else if (model == "Office") {
+        let name = document.createElement('th');
+        name.innerHTML = "Office Name";
+        $('#table thead tr').append(name);
+        let buildingName = document.createElement('th');
+        buildingName.innerHTML = "Building Name";
+        $('#table thead tr').append(buildingName);
+
+    } else if (model == "Course") {
+        let name = document.createElement('th');
+        name.innerHTML = "Course Name";
+        $('#table thead tr').append(name);
+        let courseDescription = document.createElement('th');
+        courseDescription.innerHTML = "Course Description";
+        $('#table thead tr').append(courseDescription);
+        let professor = document.createElement('th');
+        professor.innerHTML = "Professor";
+        $('#table thead tr').append(professor);
+        let noOfSeats = document.createElement('th');
+        noOfSeats.innerHTML = "Number Of Seats";
+        $('#table thead tr').append(noOfSeats);
+        let credits = document.createElement('th');
+        credits.innerHTML = "Credits";
+        $('#table thead tr').append(credits);
+
+    } else if (model == "Prereqs") {
+        let name = document.createElement('th');
+        name.innerHTML = "Course Name";
+        $('#table thead tr').append(name);
+        let courseDescription = document.createElement('th');
+        courseDescription.innerHTML = "Course Description";
+        $('#table thead tr').append(courseDescription);
+        let professor = document.createElement('th');
+        professor.innerHTML = "Professor";
+        $('#table thead tr').append(professor);
+        let prerequisite = document.createElement('th');
+        prerequisite.innerHTML = "Prerequisite";
+        $('#table thead tr').append(prerequisite);
+        
+
+    } else if (model == "Alumni") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let graduationDate = document.createElement('th');
+        graduationDate.innerHTML = "Graduation Date";
+        $('#table thead tr').append(graduationDate);
+        let finalSemester = document.createElement('th');
+        finalSemester.innerHTML = "Final Semester";
+        $('#table thead tr').append(finalSemester);
+    } else if (model == "Retiree") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let retirementDate = document.createElement('th');
+        retirementDate.innerHTML = "Retirement Date";
+        $('#table thead tr').append(retirementDate);
+
+        let retirementPackage = document.createElement('th');
+        retirementPackage.innerHTML = "Retirement Package";
+        $('#table thead tr').append(retirementPackage);
+
+
+    } else if (model == "Staff") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let officeID = document.createElement('th');
+        officeID.innerHTML = "Office";
+        $('#table thead tr').append(officeID);
+
+        let departmentName = document.createElement('th');
+        departmentName.innerHTML = "Department Name";
+        $('#table thead tr').append(departmentName);
+    } else if (model == "User") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        let username = document.createElement('th');
+        username.innerHTML = "Username";
+        $('#table thead tr').append(username);
+    } else if (model == "Employed Students") {
+        let name = document.createElement('th');
+        name.innerHTML = "Name";
+        $('#table thead tr').append(name);
+        let email = document.createElement('th');
+        email.innerHTML = "Email";
+        $('#table thead tr').append(email);
+        let phone = document.createElement('th');
+        phone.innerHTML = "Phone Number";
+        $('#table thead tr').append(phone);
+        
+    } 
+    if (model != "Employed Students") {
+        let actions = document.createElement('th');
+        actions.innerHTML = "Actions";
+        $('#table thead tr').append(actions);
+    }
+    
+    
 }

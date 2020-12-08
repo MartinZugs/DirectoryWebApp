@@ -703,10 +703,16 @@ def getModel(model):
             Employee.PersonID, Employee.EmployeeID)
         qry = session.query(Student).select_entity_from(text_stmt).filter(Student.PersonID == Employee.PersonID)
         items = session.execute(qry).fetchall()
+        
+
         results = []
         for item in items:
             dict = {"StudentID":item[0], "PersonID": item[1], "EnrollmentStatus": item[2], "CreditHoursTotal": item[3], "StudentType": item[4]}
             results.append(dict)
+        for item in results:
+            person = Person.query.get_or_404(item["PersonID"]);
+            details = person.serialize()
+            Merge(item, details)
         return results
     return None
 
