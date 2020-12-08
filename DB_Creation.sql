@@ -15,7 +15,7 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8
 
 CREATE TABLE Person (
-    PersonID int NOT NULL,
+    PersonID int NOT NULL AUTO_INCREMENT,
     FName varchar(150),
     LName varchar(150),
     Email varchar(150),
@@ -26,7 +26,7 @@ CREATE TABLE Person (
 );
 
 CREATE TABLE Student (
-    StudentID int NOT NULL,
+    StudentID int NOT NULL AUTO_INCREMENT,
     PersonID int NOT NULL,
     EnrollmentStatus varchar(50),
     CreditHoursTotal int,
@@ -36,7 +36,7 @@ CREATE TABLE Student (
 );
 
 CREATE TABLE Employee (
-    EmployeeID int NOT NULL,
+    EmployeeID int NOT NULL AUTO_INCREMENT,
     ManagerID int,
     PersonID int NOT NULL,
     EmployeeType varchar(30),
@@ -46,13 +46,13 @@ CREATE TABLE Employee (
 );
 
 CREATE TABLE Campus (
-    CampusID int NOT NULL,
+    CampusID int NOT NULL AUTO_INCREMENT,
     CampusName varchar(200),
     CONSTRAINT campus_pk PRIMARY KEY (CampusID)
 );
 
 CREATE TABLE Building (
-    BuildingID int NOT NULL,
+    BuildingID int NOT NULL AUTO_INCREMENT,
     CampusID int,
     BuildingName varchar(200),
     BuildingAddress varchar(200),
@@ -61,7 +61,7 @@ CREATE TABLE Building (
 );
 
 CREATE TABLE Department (
-    DepartmentID int NOT NULL,
+    DepartmentID int NOT NULL AUTO_INCREMENT,
     BuildingID int,
     DepartmentName varchar(200),
     CONSTRAINT department_pk PRIMARY KEY (DepartmentID),
@@ -69,7 +69,7 @@ CREATE TABLE Department (
 );
 
 CREATE TABLE Office (
-    OfficeID int NOT NULL,
+    OfficeID int NOT NULL AUTO_INCREMENT,
     BuildingID int,
     CONSTRAINT office_pk PRIMARY KEY (OfficeID),
     FOREIGN KEY (BuildingID) REFERENCES Building(BuildingID)
@@ -86,7 +86,7 @@ CREATE TABLE Faculty (
 );
 
 CREATE TABLE Course (
-    CourseID int NOT NULL,
+    CourseID int NOT NULL AUTO_INCREMENT,
     ProfID int,
     CourseDescription varchar(300),
     CourseName varchar(50),

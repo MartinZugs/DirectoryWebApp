@@ -16,6 +16,19 @@ Change Log:
  11/29(EK)
   -Added initial Update functionality and fixed validation of PersonID on new contact creation
 
+11/30 (PJ)
+- cleaned up admin page to work with our layout
+- seperated out css and scripts from the html
+- redone part of the bootstrap to be a bit nicer
+- added a few basic buttons and queries to start seting things up
+
+12/1 (PJ)
+- Dropdown with buttons to get the different models from the server
+- Setup some of the serverside code for the manage page
+- More queries added to serverside
+- to send items without redirect to page i need to add a serialize method to each model class
+- Table is dynamically filled in when query results come in from the server
+
 12/3(MZ)
 Here is what has been added: 
 - full login and register functionality
@@ -37,3 +50,36 @@ Here is what has been added:
 12/5 (EK)
 - Modified Manager Selection option on Employee Add form to be dynamically pulled from Managers on Person Table
 -Fixed Bugs: All students were managers and all employees were hard set to Manager '10' ... me :) 
+
+12/5 (PJ)
+- fixed a few bugs related to my jquery code
+- fixed bootstrap modal
+- admin page now requires authentication
+- made modal form dynamic so that depending at what you are editing it will have different form inputs
+- form is sent through Ajax post to the server so that page doesnt need to be reloaded constantly
+- Join subquery for both sql and sqlalchemy
+- add methods added to the routes
+- Finished the add modal which is fully functional
+
+12/6 (PJ)
+- decided to go ham on everything
+- fixed error with add by using a flush to get back id of pushed item
+- fixed edit modal
+- edit modal is now autopoulated from data
+- delete is fully functional just needs to be repeated for rest of tables (currently only person for proof of working)
+- able to delete multiple entries at once
+- creating new way of inputing data into the table because current way only partially works
+- edit is almost done
+- update is complete just need to pass right ids
+- soo turns out some of the inserts were broken, some of our tables were missing auto increment and the others had an issue where 
+sqlalchemy will try to create both student and undergrad when inserting undergrad because StudentID is both foreign key and primary key
+sqlalchemy.exc.OperationalError: (MySQLdb._exceptions.OperationalError) (1048, "Column 'PersonID' cannot be null")
+[SQL: INSERT INTO `Student` (`StudentID`, `PersonID`, `EnrollmentStatus`, `CreditHoursTotal`, `StudentType`) VALUES (%s, %s, %s, %s, %s)]
+
+12/7 (PJ)
+- Results for query are now nicely displayed in the table and where things like id go are replaced by the name of the item its refrencing
+- added joins to a few of the queries
+- code for edit and delete is fully functional
+- entries are now updated/ deleted without reloading page
+- table header is dynamic
+- employed students query works

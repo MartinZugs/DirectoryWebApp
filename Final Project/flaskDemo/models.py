@@ -43,7 +43,6 @@ class Person(db.Model):
 class Employee(db.Model):
     __table__ = db.Model.metadata.tables['Employee']
     def serialize(self):
-        
         return {
             'PersonID':self.PersonID,
             'EmployeeID': self.EmployeeID,
@@ -84,6 +83,7 @@ class Student(db.Model):
         
         return {
             'PersonID': self.PersonID,
+            'StudentID': self.StudentID,
             'EnrollmentStatus': self.EnrollmentStatus,
             'CreditHoursTotal': self.CreditHoursTotal,
             'StudentType': self.StudentType
@@ -173,7 +173,8 @@ class Course(db.Model):
             'ProfID': self.ProfID,
             'CourseDescription': self.CourseDescription,
             'NoOfSeats': self.NoOfSeats,
-            'Credits': self.Credits
+            'Credits': self.Credits,
+            'CourseName': self.CourseName,
 
 
         }
