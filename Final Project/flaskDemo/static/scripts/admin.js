@@ -172,15 +172,15 @@ function createOption(detail, option) {
             break;
         case "MainCourseID":
             opt.value = option.CourseID;
-            opt.text = option.CourseDescription //might be switched to CourseName //todo
+            opt.text = option.CourseName //might be switched to CourseName //todo
             break;
         case "PrereqID":
             opt.value = option.CourseID;
-            opt.text = option.CourseDescription //might be switched to CourseName //todo
+            opt.text = option.CourseName //might be switched to CourseName //todo
             break;
         case "CourseID":
             opt.value = option.CourseID;
-            opt.text = option.CourseDescription //might be switched to CourseName //todo
+            opt.text = option.CourseName //might be switched to CourseName //todo
             break;
         case "StudentID":
             opt.value = option.StudentID;
@@ -291,33 +291,36 @@ function getModel(model){
         data: {'model':model},
         success: function (response) {
             currentTableEntries = response;
-            //console.log(response);
-            fillTable(response);
+            console.log(currentTableEntries);
+            for (let row of response) {
+                addRow(row);
+            }
+            //fillTable(response);
         }
     })
 }
 
 
-function fillTable(array) {
-    if (array != null) {
-        $("#amountOfEntries").text(array.length);
-        var html = '';
-        for (var i = 0; i < array.length; i++) {
-            html += '<tr elementid="' + array[i].MainCourseID + '" elementid2=' + array[i].PrereqID + '><td>' +
-                '<input type="checkbox" id="checkbox'+i+'" name="options[]" value="1">' +
-                '<label for="checkbox1"></label>' + '</td><td>' + array[i].FName + ' ' + array[i].LName + '</td><td>' +
-                array[i].Email + '</td><td>' + array[i].UserType + '</td><td>' + array[i].PhoneNum + '</td><td>' +
-                convertToBoolean(array[i].Manager) + '</td><td>'
-                + '<a href="#editModal" class="edit" data-toggle="modal"><i class="material-icons"' +
-                'data-toggle="tooltip" title="Edit" onclick="editRow(this);">&#xE254;</i></a>' +
-                '<a class="delete" ><i class="material-icons"' +
-                'data-toggle="tooltip" title="Delete" onclick="deleteRow(this);">&#xE872;</i></a>' + '</td></tr>';
+//function fillTable(array) {
+//    if (array != null) {
+//        $("#amountOfEntries").text(array.length);
+//        var html = '';
+//        for (var i = 0; i < array.length; i++) {
+//            html += '<tr elementid="' + array[i].MainCourseID + '" elementid2=' + array[i].PrereqID + '><td>' +
+//                '<input type="checkbox" id="checkbox'+i+'" name="options[]" value="1">' +
+//                '<label for="checkbox1"></label>' + '</td><td>' + array[i].FName + ' ' + array[i].LName + '</td><td>' +
+//                array[i].Email + '</td><td>' + array[i].UserType + '</td><td>' + array[i].PhoneNum + '</td><td>' +
+//                convertToBoolean(array[i].Manager) + '</td><td>'
+//                + '<a href="#editModal" class="edit" data-toggle="modal"><i class="material-icons"' +
+//                'data-toggle="tooltip" title="Edit" onclick="editRow(this);">&#xE254;</i></a>' +
+//                '<a class="delete" ><i class="material-icons"' +
+//                'data-toggle="tooltip" title="Delete" onclick="deleteRow(this);">&#xE872;</i></a>' + '</td></tr>';
 
-        }
-        $('#table tbody').append(html);
-    }
+//        }
+//        $('#table tbody').append(html);
+//    }
     
-}
+//}
 
 function convertToBoolean(bit) {
     if (bit == 1) {
@@ -433,7 +436,7 @@ function getKeys(model,item) {
 }
 
 function sendEditFormData(data) {
-    //console.log(data)
+    console.log(data)
     $.ajax({
         method: 'POST',
         contentType: 'application/json',
@@ -443,10 +446,38 @@ function sendEditFormData(data) {
         success: function (response) {
 
             console.log(response)
-            addRow(response.data)
+            if (Array.isArray(response.data)) {
+                for (let item of response.data) {
+                    updateRow(item)
+                    
+                }
+            } else {
+                updateRow(response.data)
+                
+            }
+            
         },
         error: function (err) { console.log(err) }
     })
+}
+
+function updateRow(item) {
+    console.log(item)
+    
+        $('tr').each(function () {
+            if (this.hasAttribute("elementID2")) {
+                if ((this.getAttribute("elementID"), this.getAttribute("elementID")) == getEntryID(item)) {
+                    this.remove();
+                    addRow(item);
+                }
+            }
+            else if (this.getAttribute("elementID") == getEntryID(item)) {
+                this.remove();
+                addRow(item);
+            }
+        })
+    
+    
 }
 
 
@@ -561,7 +592,7 @@ function editRow(r) {
     //console.log(rowNode.getAttribute("elementID"));
     for (var item of currentTableEntries) {
         if (id == getEntryID(item)) {
-            //console.log(item);
+            console.log(item);
             addIDToForm(item);
             //$("#editModalContentForm").attr("elementID", id);
             populate("#editModalContentForm", item);
@@ -582,6 +613,78 @@ function addIDToForm(item) {
             id2 = item.PrereqID;
             $("#editModalContentForm").attr("elementID2", id2);
             break;
+        case "Enrolled_In":
+            id = item.MainCourseID;
+            $("#editModalContentForm").attr("elementID", id);
+            id2 = item.PrereqID;
+            $("#editModalContentForm").attr("elementID2", id2);
+            break;
+        case "Registered_For":
+            id = item.MainCourseID;
+            $("#editModalContentForm").attr("elementID", id);
+            id2 = item.PrereqID;
+            $("#editModalContentForm").attr("elementID2", id2);
+            break;
+        case "Student":
+            id = item.StudentID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Employee":
+            id = item.EmployeeID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Campus":
+            id = item.CampusID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Building":
+            id = item.BuildingID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Department":
+            id = item.DepartmentID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Office":
+            id = item.OfficeID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Faculty":
+            id = item.EmployeeID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Course":
+            id = item.CourseID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Undergrad":
+            id = item.StudentID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Graduate":
+            id = item.StudentID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Teaching_Assistant":
+            id = item.StudentID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Research_Assistant":
+            id = item.StudentID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Alumni":
+            id = item.StudentID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Retiree":
+            id = item.EmployeeID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
+        case "Staff":
+            id = item.EmployeeID;
+            $("#editModalContentForm").attr("elementID", id);
+            break;
         default:
             break;
     }
@@ -597,6 +700,58 @@ function getEntryID(entry) {
             break;
         case "Prereqs":
             id = (entry.MainCourseID, entry.PrereqID)
+            break;
+        case "Enrolled_In":
+            id = (entry.StudentID, entry.CourseID)
+            break;
+        case "Registered_For":
+            id = (entry.StudentID, entry.CourseID)
+            break;
+        case "Student":
+            id = entry.StudentID;
+            break;
+        case "Employee":
+            id = entry.EmployeeID;
+            break;
+        case "Campus":
+            id = entry.CampusID;
+            break;
+        case "Building":
+            id = entry.BuildingID;
+            break;
+        case "Department":
+            id = entry.DepartmentID;
+            break;
+        case "Office":
+            id = entry.OfficeID;
+            break;
+        case "Faculty":
+            id = entry.EmployeeID;
+            break;
+        case "Course":
+            id = entry.CourseID;
+            break;
+        case "Undergrad":
+            id = entry.StudentID;
+            break;
+        case "Graduate":
+            id = entry.StudentID;
+            break;
+        case "Teaching_Assistant":
+            id = entry.StudentID;
+            break;
+        case "Research_Assistant":
+            id = entry.StudentID;
+            break;
+        case "Alumni":
+            id = entry.StudentID;
+            break;
+        case "Retiree":
+            id = entry.EmployeeID;
+            break;
+        case "Staff":
+            id = entry.EmployeeID;
+            break;
         default:
             break;
     }
@@ -638,27 +793,363 @@ function deletePost(data, rows, callback) {
     })
 }
 
+var counter = 0;
 
 function addRow(rowData) {
-    console.log(rowData);
+    //console.log(rowData);
     var row = document.createElement('tr');
 
-    switch (rowData['model']) {
-        case "All":
-            row.setAttribute("elementid", rowData['PersonID']);
-            break;
-        default:
-            break;
-    }
+    var checkboxtd = document.createElement('td');
+    var checkbox = document.createElement("input");
+    checkbox.type = 'checkbox';
+    checkbox.id = "checkbox" + counter;
+    checkbox.value = 1;
+    checkboxtd.append(checkbox);
+    row.append(checkboxtd);
+
+    if (rowData['model'] == "All") {
+        row.setAttribute("elementid", rowData['PersonID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        let userType = document.createElement('td');
+        userType.innerHTML = rowData['UserType'];
+        row.append(userType);
         
-    //html += '<tr elementid=' + array[i].PersonID + '><td>' +
-    //    '<input type="checkbox" id="checkbox' + i + '" name="options[]" value="1">' +
-    //    '<label for="checkbox1"></label>' + '</td><td>' + array[i].FName + ' ' + array[i].LName + '</td><td>' +
-    //    array[i].Email + '</td><td>' + array[i].UserType + '</td><td>' + array[i].PhoneNum + '</td><td>' +
-    //    convertToBoolean(array[i].Manager) + '</td><td>'
-    //    + '<a href="#editModal" class="edit" data-toggle="modal"><i class="material-icons"' +
-    //    'data-toggle="tooltip" title="Edit">&#xE254;</i></a>' +
-    //    '<a class="delete" ><i class="material-icons"' +
-    //    'data-toggle="tooltip" title="Delete" onclick="deleteRow(this);">&#xE872;</i></a>' + '</td></tr>';
+        let manager = document.createElement('td');
+        manager.innerHTML = convertToBoolean(rowData['Manager']);
+        row.append(manager);
+    } else if (rowData['model'] == "Student") {
+        row.setAttribute("elementid", rowData['StudentID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        let studentType = document.createElement('td');
+        studentType.innerHTML = rowData['StudentType'];
+        row.append(studentType);
+        let enrollmentStatus = document.createElement('td');
+        enrollmentStatus.innerHTML = rowData['EnrollmentStatus'];
+        row.append(enrollmentStatus);
+        let creditHoursTotal = document.createElement('td');
+        creditHoursTotal.innerHTML = rowData['CreditHoursTotal'];
+        row.append(creditHoursTotal);
+    } else if (rowData['model'] == "Employee") {
+        row.setAttribute("elementid", rowData['EmployeeID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        let employeeType = document.createElement('td');
+        employeeType.innerHTML = rowData['EmployeeType'];
+        row.append(employeeType);
+        
+        let managerID = document.createElement('td');
+        if (rowData['ManagerID'] == null) {
+            managerID.innerHTML = "None";
+        } else {
+            managerID.innerHTML = rowData['ManagerID'];
+        }
+        row.append(managerID);
+    } else if (rowData['model'] == "Faculty") {
+        row.setAttribute("elementid", rowData['EmployeeID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        let officeID = document.createElement('td');
+        if (rowData['OfficeID'] == null) {
+            officeID.innerHTML = "None";
+        } else {
+            officeID.innerHTML =  rowData['BuildingName']+' '+rowData['OfficeID'];
+        }
+        row.append(officeID);
+        let departmentID = document.createElement('td');
+        departmentID.innerHTML = rowData['DepartmentName'];
+        row.append(departmentID);
+    } else if (rowData['model'] == "Undergrad") {
+        row.setAttribute("elementid", rowData['StudentID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        
+        let enrollmentStatus = document.createElement('td');
+        enrollmentStatus.innerHTML = rowData['EnrollmentStatus'];
+        row.append(enrollmentStatus);
+        let creditHoursTotal = document.createElement('td');
+        creditHoursTotal.innerHTML = rowData['CreditHoursTotal'];
+        row.append(creditHoursTotal);
+    } else if (rowData['model'] == "Graduate") {
+        row.setAttribute("elementid", rowData['StudentID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+
+        let enrollmentStatus = document.createElement('td');
+        enrollmentStatus.innerHTML = rowData['EnrollmentStatus'];
+        row.append(enrollmentStatus);
+        let uGCompDate = document.createElement('td');
+        uGCompDate.innerHTML = rowData['UGCompDate'];
+        row.append(uGCompDate);
+        let graduateType = document.createElement('td');
+        if (rowData['GraduateType'] == null) {
+            graduateType.innerHTML = 'None';
+        } else {
+            graduateType.innerHTML = rowData['GraduateType'];
+        }
+        row.append(graduateType);
+    } else if (rowData['model'] == "Enrolled_In") {
+        row.setAttribute("elementid", rowData['StudentID']);
+        row.setAttribute("elementid2", rowData['CourseID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+
+        let courseDescription = document.createElement('td');
+        courseDescription.innerHTML = rowData['CourseDescription'];
+        row.append(courseDescription);
+        let credits = document.createElement('td');
+        credits.innerHTML = rowData['Credits'];
+        row.append(credits);
+        
+    } else if (rowData['model'] == "Registered_For") {
+        row.setAttribute("elementid", rowData['StudentID']);
+        row.setAttribute("elementid2", rowData['CourseID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+
+        let courseDescription = document.createElement('td');
+        courseDescription.innerHTML = rowData['CourseDescription'];
+        row.append(courseDescription);
+        let credits = document.createElement('td');
+        credits.innerHTML = rowData['Credits'];
+        row.append(credits);
+
+    } else if (rowData['model'] == "Teaching_Assistant") {
+        row.setAttribute("elementid", rowData['StudentID']);
+        row.setAttribute("elementid2", rowData['CourseID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+
+        let courseDescription = document.createElement('td');
+        courseDescription.innerHTML = rowData['CourseDescription'];
+        row.append(courseDescription);
+        let credits = document.createElement('td');
+        credits.innerHTML = rowData['Credits'];
+        row.append(credits);
+
+    } else if (rowData['model'] == "Research_Assistant") {
+        row.setAttribute("elementid", rowData['StudentID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+
+        let researchFocus = document.createElement('td');
+        researchFocus.innerHTML = rowData['ResearchFocus'];
+        row.append(researchFocus);
+
+    } else if (rowData['model'] == "Campus") {
+        row.setAttribute("elementid", rowData['CampusID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['CampusName'];
+        row.append(name);
+    } else if (rowData['model'] == "Building") {
+        row.setAttribute("elementid", rowData['BuildingID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['BuildingName'];
+        row.append(name);
+        let buildingAddress = document.createElement('td');
+        buildingAddress.innerHTML = rowData['BuildingAddress'];
+        row.append(buildingAddress);
+        let campusName = document.createElement('td');
+        campusName.innerHTML = rowData['CampusName'];
+        row.append(campusName);
+    } else if (rowData['model'] == "Department") {
+        row.setAttribute("elementid", rowData['DepartmentID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['DepartmentName'];
+        row.append(name);
+        let buildingName = document.createElement('td');
+        buildingName.innerHTML = rowData['BuildingName'];
+        row.append(buildingName);
+    } else if (rowData['model'] == "Office") {
+        row.setAttribute("elementid", rowData['OfficeID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['OfficeID'];
+        row.append(name);
+        let buildingName = document.createElement('td');
+        buildingName.innerHTML = rowData['BuildingName'];
+        row.append(buildingName);
+    } else if (rowData['model'] == "Course") {
+        row.setAttribute("elementid", rowData['CourseID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['CourseName'];
+        row.append(name);
+        let courseDescription = document.createElement('td');
+        courseDescription.innerHTML = rowData['CourseDescription'];
+        row.append(courseDescription);
+        let profID = document.createElement('td');
+        profID.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(profID);
+
+        let noOfSeats = document.createElement('td');
+        noOfSeats.innerHTML = rowData['NoOfSeats'];
+        row.append(noOfSeats);
+        let credits = document.createElement('td');
+        credits.innerHTML = rowData['Credits'];
+        row.append(credits);
+    } else if (rowData['model'] == "Prereqs") {
+        row.setAttribute("elementid", rowData['MainCourseID']);
+        row.setAttribute("elementid2", rowData['PrereqID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['CourseName'];
+        row.append(name);
+        let courseDescription = document.createElement('td');
+        courseDescription.innerHTML = rowData['CourseDescription'];
+        row.append(courseDescription);
+        let profID = document.createElement('td');
+        profID.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(profID);
+
+        let preName = document.createElement('td');
+        preName.innerHTML = rowData['preName'];
+        row.append(preName);
+        
+    } else if (rowData['model'] == "Alumni") {
+        row.setAttribute("elementid", rowData['StudentID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        let graduationDate = document.createElement('td');
+        
+        graduationDate.innerHTML = "None";
+        graduationDate.innerHTML = rowData['GraduationDate'];
+        row.append(graduationDate);
+        let finalSemester = document.createElement('td');
+        finalSemester.innerHTML = rowData['FinalSemester'];
+        row.append(finalSemester);
+    } else if (rowData['model'] == "Retiree") {
+        row.setAttribute("elementid", rowData['EmployeeID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        let retirementDate = document.createElement('td');
+        retirementDate.innerHTML = rowData['RetirementDate'];
+        row.append(retirementDate);
+        let retirementPackage = document.createElement('td');
+        retirementPackage.innerHTML = rowData['RetirementPackage'];
+        row.append(retirementPackage);
+    } else if (rowData['model'] == "Staff") {
+        row.setAttribute("elementid", rowData['EmployeeID']);
+        let name = document.createElement('td');
+        name.innerHTML = rowData['FName'] + " " + rowData['LName'];
+        row.append(name);
+        let email = document.createElement('td');
+        email.innerHTML = rowData['Email'];
+        row.append(email);
+        let phoneNum = document.createElement('td');
+        phoneNum.innerHTML = rowData['PhoneNum'];
+        row.append(phoneNum);
+        let officeID = document.createElement('td');
+        if (rowData['OfficeID'] == null) {
+            officeID.innerHTML = "None";
+        } else {
+            officeID.innerHTML = rowData['BuildingName'] + ' ' + rowData['OfficeID'];
+        }
+        row.append(officeID);
+        let departmentID = document.createElement('td');
+        departmentID.innerHTML = rowData['DepartmentName'];
+        row.append(departmentID);
+    }
+         
+    
+
+    var actionsTd = document.createElement("td");
+    
+    actionsTd.id = "action" + counter;
+    let html = jQuery.parseHTML('<a href="#editModal" class="edit" data-toggle="modal"><i class="material-icons"' +
+        'data-toggle="tooltip" title="Edit" onclick="editRow(this);">&#xE254;</i></a>');
+        
+    let html2 =   jQuery.parseHTML('<a class="delete" ><i class="material-icons"' +
+        'data-toggle="tooltip" title="Delete" onclick="deleteRow(this);">&#xE872;</i></a>');
+    
+    row.append(actionsTd);
+    
+    $('#table tbody').append(row);
+    $('#action' + counter).append(html);
+    $('#action' + counter).append(html2);
+    counter += 1;
+  
 
 }
