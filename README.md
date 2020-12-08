@@ -75,3 +75,9 @@ Here is what has been added:
 sqlalchemy will try to create both student and undergrad when inserting undergrad because StudentID is both foreign key and primary key
 sqlalchemy.exc.OperationalError: (MySQLdb._exceptions.OperationalError) (1048, "Column 'PersonID' cannot be null")
 [SQL: INSERT INTO `Student` (`StudentID`, `PersonID`, `EnrollmentStatus`, `CreditHoursTotal`, `StudentType`) VALUES (%s, %s, %s, %s, %s)]
+
+12/7 (PJ)
+- Results for query are now nicely displayed in the table and where things like id go are replaced by the name of the item its refrencing
+- added joins to a few of the queries
+- code for edit and delete is fully functional
+- entries are now updated/ deleted without reloading page
