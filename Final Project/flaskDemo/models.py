@@ -83,6 +83,7 @@ class Student(db.Model):
         
         return {
             'PersonID': self.PersonID,
+            'StudentID': self.StudentID,
             'EnrollmentStatus': self.EnrollmentStatus,
             'CreditHoursTotal': self.CreditHoursTotal,
             'StudentType': self.StudentType
@@ -172,7 +173,8 @@ class Course(db.Model):
             'ProfID': self.ProfID,
             'CourseDescription': self.CourseDescription,
             'NoOfSeats': self.NoOfSeats,
-            'Credits': self.Credits
+            'Credits': self.Credits,
+            'CourseName': self.CourseName,
 
 
         }
