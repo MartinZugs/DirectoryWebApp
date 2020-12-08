@@ -295,8 +295,11 @@ def manage():
 def adminEdit():
     data = request.get_json()
     #print(data)
-    updateEntry(data)
-    return {"data": None, "result": "success"}
+    result = updateEntry(data)
+    if result is not False:
+        return {"data": result, "result": "success"}
+    else:
+        return {"data": None, "result": "fail"}
 
 @app.route("/admin/delete", methods=['POST'])
 def deleteItem():
@@ -528,7 +531,7 @@ def getModel(model):
         return results
     elif (model == "Student"):
         items = session.query(Student,Person).filter(Person.PersonID == Student.PersonID).all()
-        test = Student.query.all()
+        #test = Student.query.all()
         #for item in test:
         #    print(item)
         results = []
@@ -575,27 +578,46 @@ def getModel(model):
         return results
     elif (model == "Faculty"):
         results = []
-        
-        items = session.query(Faculty, Employee, Person).filter(Employee.EmployeeID == Faculty.EmployeeID).filter(Employee.PersonID == Person.PersonID).all()
+        offices = []
+        officequery = session.query(Office, Building).filter(Office.BuildingID == Building.BuildingID)
+        for item in officequery:
+            office = item.Office.serialize()
+            building = item.Building.serialize()
+            Merge(office, building)
+            offices.append(office)
+        items = session.query(Faculty, Employee, Person, Department).filter(Employee.EmployeeID == Faculty.EmployeeID).filter(Employee.PersonID == Person.PersonID).filter(Faculty.DepartmentID == Department.DepartmentID).all()
         for item in items:
             faculty = item.Faculty.serialize()
             employee = item.Employee.serialize()
             person   = item.Person.serialize()
+            department   = item.Department.serialize()
             Merge(faculty, employee)
             Merge(faculty,person)
+            Merge(faculty, department)
             results.append(faculty)
+        for item in results:
+            print(item)
+            if item['OfficeID'] is not None:
+                for office in offices:
+                    if office['OfficeID'] == item['OfficeID']:
+                        Merge(item, office)
         return results
     elif (model == "Course"):
-        items = session.query(Course, Prereqs).filter(Course.CourseID == Prereqs.MainCourseID).all()
+        items = session.query(Course, Faculty, Employee, Person).filter(Course.ProfID == Faculty.EmployeeID).filter(Faculty.EmployeeID == Employee.EmployeeID).filter(Employee.PersonID == Person.PersonID).all()
         results = []
         for item in items:
             course = item.Course.serialize()
-            prereqs = item.Prereqs.serialize()
-            Merge(course, prereqs)
+            faculty = item.Faculty.serialize()
+            employee = item.Employee.serialize()
+            person = item.Person.serialize()
+            
+            Merge(course, faculty)
+            Merge(course, employee)
+            Merge(course, person)
             results.append(course)
         return results
     elif (model == "Prereqs"):
-        cmd = 'SELECT * FROM Prereqs JOIN Course on Prereqs.MainCourseID = Course.CourseID;'
+        cmd = 'SELECT Course.CourseID, Course.ProfID, Course.CourseDescription, Course.CourseName, Course.NoOfSeats, Course.Credits, pre.CourseName as preName, pre.CourseDescription as preDesc, Person.FName, Person.LName FROM Prereqs JOIN Course on Prereqs.MainCourseID = Course.CourseID JOIN Course as pre on Prereqs.PrereqID = pre.CourseID JOIN Faculty on Course.ProfID = Faculty.EmployeeID JOIN Employee on Faculty.EmployeeID = Employee.EmployeeID JOIN Person on Employee.PersonID = Person.PersonID;'
         items = connection.execute(cmd)
         print(items)
         results = convert_to_dict(items)
@@ -608,7 +630,7 @@ def getModel(model):
         results = convert_to_dict(items)
         return results
     elif (model == "Enrolled_In"):
-        cmd = 'SELECT * FROM Enrolled_In JOIN (SELECT Undergrad.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Undergrad JOIN Student on Student.StudentID = Undergrad.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Enrolled_In.StudentID = y.StudentID'
+        cmd = 'SELECT * FROM Enrolled_In JOIN (SELECT Undergrad.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Undergrad JOIN Student on Student.StudentID = Undergrad.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Enrolled_In.StudentID = y.StudentID JOIN Course on Course.CourseID = Enrolled_In.CourseID'
         items = connection.execute(cmd)
         results = convert_to_dict(items)
         return results
@@ -618,7 +640,7 @@ def getModel(model):
         results = convert_to_dict(items)
         return results
     elif (model == "Registered_For"):
-        cmd = 'SELECT * FROM Registered_For JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Registered_For.StudentID = y.StudentID'
+        cmd = 'SELECT * FROM Registered_For JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Registered_For.StudentID = y.StudentID JOIN Course on Course.CourseID = Registered_For.CourseID'
         items = connection.execute(cmd)
         results = convert_to_dict(items)
         return results
@@ -643,9 +665,33 @@ def getModel(model):
         results = convert_to_dict(items)
         return results
     elif (model == "Staff"):
-        cmd = 'SELECT * FROM Staff JOIN (Select Employee.EmployeeID, Employee.PersonID, Person.FName, Person.LName, Person.Email, Person.PhoneNum From Employee Join Person on Employee.PersonID = Person.PersonID) as y on y.EmployeeID = Staff.EmployeeID'
-        items = connection.execute(cmd)
-        results = convert_to_dict(items)
+        #cmd = 'SELECT * FROM Staff JOIN (Select Employee.EmployeeID, Employee.PersonID, Person.FName, Person.LName, Person.Email, Person.PhoneNum From Employee Join Person on Employee.PersonID = Person.PersonID) as y on y.EmployeeID = Staff.EmployeeID'
+        #items = connection.execute(cmd)
+        #results = convert_to_dict(items)
+        results = []
+        offices = []
+        officequery = session.query(Office, Building).filter(Office.BuildingID == Building.BuildingID)
+        for item in officequery:
+            office = item.Office.serialize()
+            building = item.Building.serialize()
+            Merge(office, building)
+            offices.append(office)
+        items = session.query(Staff, Employee, Person, Department).filter(Employee.EmployeeID == Staff.EmployeeID).filter(Employee.PersonID == Person.PersonID).filter(Staff.DepartmentID == Department.DepartmentID).all()
+        for item in items:
+            staff = item.Staff.serialize()
+            employee = item.Employee.serialize()
+            person   = item.Person.serialize()
+            department   = item.Department.serialize()
+            Merge(staff, employee)
+            Merge(staff,person)
+            Merge(staff, department)
+            results.append(staff)
+        for item in results:
+            print(item)
+            if item['OfficeID'] is not None:
+                for office in offices:
+                    if office['OfficeID'] == item['OfficeID']:
+                        Merge(item, office)
         return results
     elif (model == "User"):
         cmd = 'SELECT user.id, user.username, user.email, Person.FName, Person.LName, Person.PhoneNum FROM user JOIN Person on user.email = Person.email'
@@ -675,6 +721,7 @@ def getModelFields(model):
         item['UserType'] = [{'type':'Student'},{'type':'Employee'}]
     elif (model == "Student"):
         item = Student().serialize()
+        item.pop("StudentID")
         item['StudentType'] = [{'type':'Undergrad'},{'type':'Graduate'}]
 
         cmd = 'SELECT Person.PersonID, Person.FName, Person.LName FROM Person;'
@@ -867,7 +914,7 @@ def insertItem(data):
     elif (data['model'] == 'Faculty'):
         item = Faculty(EmployeeID = data['EmployeeID'], OfficeID = data['OfficeID'], DepartmentID = data['DepartmentID'])
     elif (data['model'] == 'Course'):
-        item = Course(ProfID = data['ProfID'], CourseDescription = data['CourseDescription'])
+        item = Course(ProfID = data['ProfID'], CourseDescription = data['CourseDescription'],CourseName = data['CourseName'], Credits = data['Credits'], NoOfSeats = data['NoOfSeats'] )
     elif (data['model'] == 'Prereqs'):
         item = Prereqs(MainCourseID = data['MainCourseID'], PrereqID = data['PrereqID'])
     elif (data['model'] == 'Undergrad'):
@@ -1000,7 +1047,7 @@ def deleteItemQuery(data):
     
 
 def updateEntry(data):
-    print(data)
+    
     if (data['model'] == 'All'):
         person = Person.query.filter_by(PersonID = data['id']).first()
         print(person)
@@ -1015,7 +1062,7 @@ def updateEntry(data):
         #not sure if we should have this because they would need to set the password
         return False
     elif (data['model'] == 'Employee'):
-        employee = Employee.query.filter_by(PersonID = data['id']).first()
+        employee = Employee.query.filter_by(EmployeeID = data['id']).first()
         if data['ManagerID'] == '':
             employee.ManagerID = None
         else:
@@ -1081,9 +1128,227 @@ def updateEntry(data):
         staff = Staff.query.filter_by(EmployeeID = data['id']).first()
         staff.OfficeID = data['OfficeID']
         staff.DepartmentID = data['DepartmentID']
-    try:
-        db.session.commit()
-        return True
-    except:
-        return False
     
+    db.session.commit()
+    result = getUpdatedModel(data)
+    print(result)
+    return result
+    
+    
+def getUpdatedModel(data):
+    session = db.session
+    connection = db.engine.connect()
+    print(data)
+    if (data['model'] == "Employee"):
+
+        items = session.query(Person,Employee).filter(Person.PersonID == Employee.PersonID).filter(Employee.EmployeeID == data['id']).all()
+        # employees = Employee.query.join(Person, Employee.PersonID == Person.PersonID).all()
+        results = []
+        for item in items:
+            person = item.Person.serialize()
+            employee = item.Employee.serialize()
+            Merge(person,employee)
+            #print(person)
+            person['model'] = data['model']
+            results.append(person)
+        return results
+    elif (data['model'] == "All"):
+        persons = Person.query.get_or_404(data['id'])
+        
+        
+        person = persons.serialize()
+        person['model'] = data['model']
+        
+        return person
+    elif (data['model'] == "Student"):
+        items = session.query(Student,Person).filter(Person.PersonID == Student.PersonID).filter(Student.StudentID == data['id']).all()
+        #test = Student.query.all()
+        #for item in test:
+        #    print(item)
+        results = []
+        for item in items:
+            person = item.Person.serialize()
+            student = item.Student.serialize()
+            Merge(person,student)
+            #print(person)
+            person['model'] = data['model']
+            results.append(person)
+        return results
+    elif (data['model'] == "Campus"):
+        items = Campus.query.filter(Campus.CampusID == data['id']).all()
+        results = []
+        for item in items:
+            campus = item.serialize()
+            campus['model'] = data['model']
+            results.append(campus)
+        return results
+    elif (data['model'] == "Building"):
+        items = session.query(Building, Campus).filter(Building.CampusID== Campus.CampusID).filter(Building.BuildingID == data['id']).all()
+        results = []
+        for item in items:
+            campus = item.Campus.serialize()
+            building = item.Building.serialize()
+            Merge(campus, building)
+            campus['model'] = data['model']
+            results.append(campus)
+        return results
+    elif (data['model'] == "Department"):
+        results = []
+        items = session.query(Building, Department).filter(Department.BuildingID == Building.BuildingID).filter(Department.DepartmentID == data['id']).all()
+        for item in items:
+            department = item.Department.serialize()
+            building = item.Building.serialize()
+            Merge(building, department)
+            building['model'] = data['model']
+            results.append(building)
+        return results
+    elif (data['model'] == "Office"):
+        results = []
+        items = session.query(Building, Office).filter(Office.BuildingID == Building.BuildingID).filter(Office.OfficeID == data['id']).all()
+        for item in items:
+            office = item.Office.serialize()
+            building = item.Building.serialize()
+            Merge(building, office)
+            building['model'] = data['model']
+            results.append(building)
+        return results
+    elif (data['model'] == "Faculty"):
+        results = []
+        offices = []
+        officequery = session.query(Office, Building).filter(Office.BuildingID == Building.BuildingID).all()
+        for item in officequery:
+            office = item.Office.serialize()
+            building = item.Building.serialize()
+            Merge(office, building)
+            offices.append(office)
+        items = session.query(Faculty, Employee, Person, Department).filter(Employee.EmployeeID == Faculty.EmployeeID).filter(Employee.PersonID == Person.PersonID).filter(Faculty.DepartmentID == Department.DepartmentID).filter(Faculty.EmployeeID == data['id']).all()
+        for item in items:
+            faculty = item.Faculty.serialize()
+            employee = item.Employee.serialize()
+            person   = item.Person.serialize()
+            department   = item.Department.serialize()
+            Merge(faculty, employee)
+            Merge(faculty,person)
+            Merge(faculty, department)
+            faculty['model'] = data['model']
+            results.append(faculty)
+        for item in results:
+            print(item)
+            if item['OfficeID'] is not None:
+                for office in offices:
+                    if office['OfficeID'] == item['OfficeID']:
+                        Merge(item, office)
+        return results
+    elif (data['model'] == "Course"):
+        items = session.query(Course, Faculty, Employee, Person).filter(Course.ProfID == Faculty.EmployeeID).filter(Faculty.EmployeeID == Employee.EmployeeID).filter(Employee.PersonID == Person.PersonID).filter(Course.CourseID == data['id']).all()
+        results = []
+        for item in items:
+            course = item.Course.serialize()
+            faculty = item.Faculty.serialize()
+            employee = item.Employee.serialize()
+            person = item.Person.serialize()
+            
+            Merge(course, faculty)
+            Merge(course, employee)
+            Merge(course, person)
+            course['model'] = data['model']
+            results.append(course)
+        return results
+    #elif (data['model'] == "Prereqs"): impossible to update
+    #    cmd = 'SELECT Course.CourseID, Course.ProfID, Course.CourseDescription, Course.CourseName, Course.NoOfSeats, Course.Credits, pre.CourseName as preName, pre.CourseDescription as preDesc, Person.FName, Person.LName FROM Prereqs JOIN Course on Prereqs.MainCourseID = Course.CourseID JOIN Course as pre on Prereqs.PrereqID = pre.CourseID JOIN Faculty on Course.ProfID = Faculty.EmployeeID JOIN Employee on Faculty.EmployeeID = Employee.EmployeeID JOIN Person on Employee.PersonID = Person.PersonID WHERE Prereqs.MainCourseID = '+ data['id'][0];+ '
+    #    items = connection.execute(cmd)
+    #    print(items)
+    #    results = convert_to_dict(items)
+        
+    #    #results.append(items)
+    #    return results
+    #elif (data['model'] == "Undergrad"): impossible to update
+    #    cmd = 'SELECT * FROM Undergrad JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Undergrad.StudentID = y.StudentID'
+    #    items = connection.execute(cmd)
+    #    results = convert_to_dict(items)
+    #    return results
+    #elif (data['model'] == "Enrolled_In"): impossible to update
+    #    cmd = 'SELECT * FROM Enrolled_In JOIN (SELECT Undergrad.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Undergrad JOIN Student on Student.StudentID = Undergrad.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Enrolled_In.StudentID = y.StudentID JOIN Course on Course.CourseID = Enrolled_In.CourseID'
+    #    items = connection.execute(cmd)
+    #    results = convert_to_dict(items)
+    #    return results
+    elif (data['model'] == "Graduate"):
+        cmd = 'SELECT * FROM Graduate JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Graduate.StudentID = y.StudentID WHERE Graduate.StudentID = ' + data['id'] + ';'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        for item in results:
+            item['model'] = data['model']
+        
+        return results
+    #elif (data['model'] == "Registered_For"):impossible to update
+    #    cmd = 'SELECT * FROM Registered_For JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Registered_For.StudentID = y.StudentID JOIN Course on Course.CourseID = Registered_For.CourseID'
+    #    items = connection.execute(cmd)
+    #    results = convert_to_dict(items)
+    #    return results
+    elif (data['model'] == "Teaching_Assistant"):
+        cmd = 'SELECT * FROM Teaching_Assistant JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Teaching_Assistant.StudentID = y.StudentID JOIN Course on Course.CourseID = Teaching_Assistant.CourseID WHERE Teaching_Assistant.StudentID = ' + data['id'] + ';'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        for item in results:
+            item['model'] = data['model']
+        return results
+    elif (data['model'] == "Research_Assistant"):
+        cmd = 'SELECT * FROM Research_Assistant JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Research_Assistant.StudentID = y.StudentID WHERE Research_Assistant.StudentID = ' + data['id'] + ';'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        for item in results:
+            item['model'] = data['model']
+        return results
+    elif (data['model'] == "Alumni"):
+        cmd = 'SELECT * FROM Alumni JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Alumni.StudentID = y.StudentID WHERE Alumni.StudentID = ' + data['id'] + ';'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        for item in results:
+            item['model'] = data['model']
+        return results
+    elif (data['model'] == "Retiree"):
+        cmd = 'SELECT * FROM Retiree JOIN (Select Employee.EmployeeID, Employee.PersonID, Person.FName, Person.LName, Person.Email, Person.PhoneNum From Employee Join Person on Employee.PersonID = Person.PersonID) as y on y.EmployeeID = Retiree.EmployeeID WHERE Retiree.StudentID = ' + data['id'] + ';'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        for item in results:
+            item['model'] = data['model']
+        return results
+    elif (data['model'] == "Staff"):
+        #cmd = 'SELECT * FROM Staff JOIN (Select Employee.EmployeeID, Employee.PersonID, Person.FName, Person.LName, Person.Email, Person.PhoneNum From Employee Join Person on Employee.PersonID = Person.PersonID) as y on y.EmployeeID = Staff.EmployeeID'
+        #items = connection.execute(cmd)
+        #results = convert_to_dict(items)
+        results = []
+        offices = []
+        officequery = session.query(Office, Building).filter(Office.BuildingID == Building.BuildingID)
+        for item in officequery:
+            office = item.Office.serialize()
+            building = item.Building.serialize()
+            Merge(office, building)
+            offices.append(office)
+        items = session.query(Staff, Employee, Person, Department).filter(Employee.EmployeeID == Staff.EmployeeID).filter(Employee.PersonID == Person.PersonID).filter(Staff.DepartmentID == Department.DepartmentID).filter(Staff.EmployeeID == data['id']).all()
+        for item in items:
+            staff = item.Staff.serialize()
+            employee = item.Employee.serialize()
+            person   = item.Person.serialize()
+            department   = item.Department.serialize()
+            Merge(staff, employee)
+            Merge(staff,person)
+            Merge(staff, department)
+            staff['model'] = data['model']
+            results.append(staff)
+        for item in results:
+            print(item)
+            if item['OfficeID'] is not None:
+                for office in offices:
+                    if office['OfficeID'] == item['OfficeID']:
+                        Merge(item, office)
+        return results
+    elif (data['model'] == "user"):
+        cmd = 'SELECT user.id, user.username, user.email, Person.FName, Person.LName, Person.PhoneNum FROM user JOIN Person on user.email = Person.email WHERE user.id = '  + data['id'] + ';'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        for item in results:
+            item['model'] = data['model']
+        return results
+    
+    return None
