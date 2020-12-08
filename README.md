@@ -81,3 +81,5 @@ sqlalchemy.exc.OperationalError: (MySQLdb._exceptions.OperationalError) (1048, "
 - added joins to a few of the queries
 - code for edit and delete is fully functional
 - entries are now updated/ deleted without reloading page
+- table header is dynamic
+- employed students query works
