@@ -239,6 +239,7 @@ def result():
     return render_template('result.html', title='Result', form=form)
 
 @app.route("/admin", methods=['GET', 'POST'])
+@login_required
 def admin():
     if not current_user.is_authenticated:
         flash('You are not allowed to go to the manager page', 'danger')
@@ -253,9 +254,8 @@ def admin():
         
         flash('You are not allowed to go to the manager page', 'danger')
         return redirect(url_for('home'))
-    # i think i need to send all of the content to the page because otherwise I will need to keep resending stuff
-    persons = Person.query.all()
-    return render_template('admin.html', title='Admin', people= persons)
+    
+    return render_template('admin.html', title='Admin')
 
 @app.route("/admin/manage", methods=['GET', 'POST'])
 @login_required
@@ -274,7 +274,6 @@ def manage():
         model = request.args.get("model")
         
         data = getModel(model)
-        # results =  []
         for item in data:
            item['model'] = model
         return jsonify(data)
@@ -286,7 +285,7 @@ def manage():
             flash('Failed to add ' + data['model'], 'danger')
             return ""
         else: 
-            result['model'] = data['model']
+            
             print(result)
             return {"data": result, "result": "success"}
         return "test"
@@ -617,7 +616,7 @@ def getModel(model):
             results.append(course)
         return results
     elif (model == "Prereqs"):
-        cmd = 'SELECT Course.CourseID, Course.ProfID, Course.CourseDescription, Course.CourseName, Course.NoOfSeats, Course.Credits, pre.CourseName as preName, pre.CourseDescription as preDesc, Person.FName, Person.LName FROM Prereqs JOIN Course on Prereqs.MainCourseID = Course.CourseID JOIN Course as pre on Prereqs.PrereqID = pre.CourseID JOIN Faculty on Course.ProfID = Faculty.EmployeeID JOIN Employee on Faculty.EmployeeID = Employee.EmployeeID JOIN Person on Employee.PersonID = Person.PersonID;'
+        cmd = 'SELECT Prereqs.MainCourseID, Prereqs.PrereqID, Course.CourseID, Course.ProfID, Course.CourseDescription, Course.CourseName, Course.NoOfSeats, Course.Credits, pre.CourseName as preName, pre.CourseDescription as preDesc, Person.FName, Person.LName FROM Prereqs JOIN Course on Prereqs.MainCourseID = Course.CourseID JOIN Course as pre on Prereqs.PrereqID = pre.CourseID JOIN Faculty on Course.ProfID = Faculty.EmployeeID JOIN Employee on Faculty.EmployeeID = Employee.EmployeeID JOIN Person on Employee.PersonID = Person.PersonID;'
         items = connection.execute(cmd)
         print(items)
         results = convert_to_dict(items)
@@ -966,10 +965,54 @@ def insertItem(data):
     session.add(item)
     session.flush()
     session.commit()
-    print(item)
+    update = item.serialize()
+    update['model'] = data['model']
     
-    return item.serialize()
+    result = getUpdatedModel(convertToID(update))
+    return result
     
+def convertToID(item):
+    if (item['model'] == 'All'):
+        item['id'] = item['PersonID']
+    elif (item['model'] == 'Prereqs'):
+        item['id'] = (item['MainCourseID'],item['PrereqID'])
+    elif (item['model'] == 'User'):
+        item['id'] = item['id']    
+    elif (item['model'] == 'Employee'):
+        item['id'] = item['EmployeeID']   
+    elif (item['model'] == 'Student'):
+        item['id'] = item['StudentID']      
+    elif (item['model'] == 'Campus'):
+        item['id'] = item['CampusID']
+    elif (item['model'] == 'Building'):
+        item['id'] = item['BuildingID']        
+    elif (item['model'] == 'Department'):
+        item['id'] = item['DepartmentID']        
+    elif (item['model'] == 'Office'):
+        item['id'] = item['OfficeID']        
+    elif (item['model'] == 'Faculty'):
+        item['id'] = item['EmployeeID']        
+    elif (item['model'] == 'Course'):
+        item['id'] = item['CourseID']        
+    elif (item['model'] == 'Undergrad'):
+        item['id'] = item['StudentID']        
+    elif (item['model'] == 'Enrolled_In'):
+        item['id'] = (item['StudentID'],item['CourseID'])      
+    elif (item['model'] == 'Graduate'):
+        item['id'] = item['StudentID'] 
+    elif (item['model'] == 'Registered_For'):
+        item['id'] = (item['StudentID'],item['CourseID'])        
+    elif (item['model'] == 'Teaching_Assistant'):
+        item['id'] = item['StudentID']  
+    elif (item['model'] == 'Research_Assistant'):
+        item['id'] = item['StudentID']       
+    elif (item['model'] == 'Alumni'):
+        item['id'] = item['StudentID']       
+    elif (item['model'] == 'Retiree'):
+        item['id'] = item['EmployeeID']       
+    elif (item['model'] == 'Staff'):
+        item['id'] = item['EmployeeID']        
+    return item
         
     
 def deleteItemQuery(data):
@@ -1041,15 +1084,11 @@ def deleteItemQuery(data):
         elif (item['model'] == 'Staff'):
             itemToDelete = Staff.query.get_or_404(item['id'])
             db.session.delete(itemToDelete)
-    try:
-        #print(itemsToDelete)
-        #for item in itemsToDelete:
-        #    item.delete()
+    
        
-        db.session.commit()
-        return True
-    except:
-        return False
+    db.session.commit()
+    return True
+    
     
 
 def updateEntry(data):
@@ -1260,24 +1299,27 @@ def getUpdatedModel(data):
             course['model'] = data['model']
             results.append(course)
         return results
-    #elif (data['model'] == "Prereqs"): impossible to update
-    #    cmd = 'SELECT Course.CourseID, Course.ProfID, Course.CourseDescription, Course.CourseName, Course.NoOfSeats, Course.Credits, pre.CourseName as preName, pre.CourseDescription as preDesc, Person.FName, Person.LName FROM Prereqs JOIN Course on Prereqs.MainCourseID = Course.CourseID JOIN Course as pre on Prereqs.PrereqID = pre.CourseID JOIN Faculty on Course.ProfID = Faculty.EmployeeID JOIN Employee on Faculty.EmployeeID = Employee.EmployeeID JOIN Person on Employee.PersonID = Person.PersonID WHERE Prereqs.MainCourseID = '+ data['id'][0];+ '
-    #    items = connection.execute(cmd)
-    #    print(items)
-    #    results = convert_to_dict(items)
-        
+    elif (data['model'] == "Prereqs"): 
+        cmd = 'SELECT Prereqs.MainCourseID, Prereqs.PrereqID, Course.CourseID, Course.ProfID, Course.CourseDescription, Course.CourseName, Course.NoOfSeats, Course.Credits, pre.CourseName as preName, pre.CourseDescription as preDesc, Person.FName, Person.LName FROM Prereqs JOIN Course on Prereqs.MainCourseID = Course.CourseID JOIN Course as pre on Prereqs.PrereqID = pre.CourseID JOIN Faculty on Course.ProfID = Faculty.EmployeeID JOIN Employee on Faculty.EmployeeID = Employee.EmployeeID JOIN Person on Employee.PersonID = Person.PersonID WHERE Prereqs.MainCourseID = "'+ str(data['id'][0]) +'" AND Prereqs.PrereqID = "'+str(data['id'][1])+'";'
+        items = connection.execute(cmd)
+        print(items)
+        results = convert_to_dict(items)
+        results[0]['model'] = data['model']
+        return results
     #    #results.append(items)
     #    return results
-    #elif (data['model'] == "Undergrad"): impossible to update
-    #    cmd = 'SELECT * FROM Undergrad JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Undergrad.StudentID = y.StudentID'
-    #    items = connection.execute(cmd)
-    #    results = convert_to_dict(items)
-    #    return results
-    #elif (data['model'] == "Enrolled_In"): impossible to update
-    #    cmd = 'SELECT * FROM Enrolled_In JOIN (SELECT Undergrad.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Undergrad JOIN Student on Student.StudentID = Undergrad.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Enrolled_In.StudentID = y.StudentID JOIN Course on Course.CourseID = Enrolled_In.CourseID'
-    #    items = connection.execute(cmd)
-    #    results = convert_to_dict(items)
-    #    return results
+    elif (data['model'] == "Undergrad"): 
+        cmd = 'SELECT * FROM Undergrad JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Undergrad.StudentID = y.StudentID WHERE Undergrad.StudentID = "'+ str(data['id'][0])+'";'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        results[0]['model'] = data['model']
+        return results
+    elif (data['model'] == "Enrolled_In"):
+        cmd = 'SELECT * FROM Enrolled_In JOIN (SELECT Undergrad.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Undergrad JOIN Student on Student.StudentID = Undergrad.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Enrolled_In.StudentID = y.StudentID JOIN Course on Course.CourseID = Enrolled_In.CourseID WHERE Enrolled_In.StudentID = "'+ str(data['id'][0]) +'" AND Enrolled_In.CourseID = "'+str(data['id'][1])+'";'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        results[0]['model'] = data['model']
+        return results
     elif (data['model'] == "Graduate"):
         cmd = 'SELECT * FROM Graduate JOIN (SELECT Student.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Student JOIN Person on Person.PersonID = Student.PersonID) as y on Graduate.StudentID = y.StudentID WHERE Graduate.StudentID = ' + data['id'] + ';'
         items = connection.execute(cmd)
@@ -1286,11 +1328,12 @@ def getUpdatedModel(data):
             item['model'] = data['model']
         
         return results
-    #elif (data['model'] == "Registered_For"):impossible to update
-    #    cmd = 'SELECT * FROM Registered_For JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Registered_For.StudentID = y.StudentID JOIN Course on Course.CourseID = Registered_For.CourseID'
-    #    items = connection.execute(cmd)
-    #    results = convert_to_dict(items)
-    #    return results
+    elif (data['model'] == "Registered_For"):
+        cmd = 'SELECT * FROM Registered_For JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Registered_For.StudentID = y.StudentID JOIN Course on Course.CourseID = Registered_For.CourseID WHERE Registered_For.StudentID = "'+ str(data['id'][0]) +'" AND Registered_For.CourseID = "'+str(data['id'][1])+'";'
+        items = connection.execute(cmd)
+        results = convert_to_dict(items)
+        results[0]['model'] = data['model']
+        return results
     elif (data['model'] == "Teaching_Assistant"):
         cmd = 'SELECT * FROM Teaching_Assistant JOIN (SELECT Graduate.StudentID, Student.PersonID, Student.EnrollmentStatus, Student.CreditHoursTotal, Student.StudentType, Person.FName, Person.LName, Person.Email, Person.PhoneNum FROM Graduate JOIN Student on Student.StudentID = Graduate.StudentID JOIN Person on Person.PersonID = Student.PersonID) as y on Teaching_Assistant.StudentID = y.StudentID JOIN Course on Course.CourseID = Teaching_Assistant.CourseID WHERE Teaching_Assistant.StudentID = ' + data['id'] + ';'
         items = connection.execute(cmd)

@@ -210,6 +210,15 @@ function addForm(details, model, modalName) {
     f.setAttribute('model', model);
     //console.log(f);
     //f.setAttribute('method', "post");
+    if (modalName == 'editModalContent') {
+        if (model == 'Prereqs' || model == 'Undergrad' || model == 'Enrolled_In' || model == 'Registered_For') {
+            var body = document.createElement('div');
+            body.className = "modal-body";
+            body.innerHTML = "Sorry cant edit this Model"
+            f.append(body);
+        }
+    }
+
     if (model == 'Employed Students') {
         var body = document.createElement('div');
         body.className = "modal-body";
@@ -306,6 +315,7 @@ function getModel(model){
         success: function (response) {
             currentTableEntries = response;
             console.log(currentTableEntries);
+            $("#amountOfEntries").text(response.length);
             for (let row of response) {
                 addRow(row);
             }
@@ -506,7 +516,17 @@ function sendAddFormData(data) {
         success: function (response) {
 
             console.log(response)
-            //addRow(response.data)
+            if (Array.isArray(response.data)) {
+                for (item of response.data) {
+                    addRow(item)
+                    currentTableEntries.push(item)
+                }
+            } else {
+                addRow(response.data)
+                currentTableEntries.push(response.data)
+            }
+            
+            
         },
         error: function (err) { console.log(err) } 
     })
@@ -810,7 +830,7 @@ function deletePost(data, rows, callback) {
 var counter = 0;
 
 function addRow(rowData) {
-    //console.log(rowData);
+    console.log(rowData);
     var row = document.createElement('tr');
 
     var checkboxtd = document.createElement('td');
